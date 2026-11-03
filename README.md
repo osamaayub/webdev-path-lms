@@ -29,7 +29,7 @@ Most beginners don't fail from lack of material. They fail because there's too m
 
 ## Live demo
 
-**[webdev-path-lms.vercel.app](https://webdev-path-lms.vercel.app)**, deployed on Vercel. Every push to `main` redeploys automatically.
+**[webdev-path-lms.vercel.app](https://webdev-path-lms.vercel.app)**, deployed on Vercel with a Neon Postgres database. Sign in with GitHub to save progress, take the quizzes and submit projects. Every push to `main` redeploys automatically.
 
 ## Features
 
