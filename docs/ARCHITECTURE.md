@@ -8,6 +8,7 @@
 | No sign-up to start learning | Progress lives in the browser (localStorage), behind a small store |
 | Easy to grow into a real LMS | Progress is plain data with pure functions, so a database can replace the storage without UI changes |
 | Content anyone can edit safely | Typed content files, checked by tests on every push |
+| A design that teaches the structure | The course is drawn as a transit route; each phase has its own line colour used on every page |
 
 ## System overview
 
@@ -43,6 +44,10 @@ Rules:
 **Progress in the browser first.** Learners start in one click. Stored data is versioned (`version: 1`) and validated on read, so corrupted or old data resets instead of crashing.
 
 **Real 404s.** With Partial Prerendering, `notFound()` in a streamed page would return status 200. `proxy.ts` checks the path against `content/routes.ts` and returns a true 404, so search engines never index missing pages.
+
+**Route map as the core UI.** The course really is a sequence, so the main visual is a transit line: one coloured line per phase, one stop per week. It doubles as navigation and as the progress display, so there is one mental model across the home page, dashboard and lesson pages.
+
+**Self-hosted fonts.** Bricolage Grotesque (headings) and Atkinson Hyperlegible (body, built for readability) ship as local woff2 files through `next/font/local`: no third-party request and no layout shift.
 
 **Validation at the edge of the system.** Project submissions are parsed with Zod (GitHub repo URL, https live URL). The same schema can run on a server later.
 
