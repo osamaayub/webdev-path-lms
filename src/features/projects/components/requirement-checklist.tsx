@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { toggleRequirement } from "@/features/progress/actions";
+import { setRequirement } from "@/features/progress/actions";
 import { toggleIndex } from "@/features/progress/model";
 import { patchLearner, refreshLearner, useLearner } from "@/features/progress/store";
 
@@ -13,9 +13,10 @@ export function RequirementChecklist({ project, items, color }: { project: strin
 
   async function toggle(i: number) {
     setError(null);
+    const on = !checked.includes(i);
     // Optimistic: tick now, confirm with the server, roll back on failure.
     patchLearner((s) => ({ ...s, projects: { ...s.projects, [project]: { ...s.projects[project], checked: toggleIndex(s.projects[project]?.checked ?? [], i) } } }));
-    const res = await toggleRequirement(project, i);
+    const res = await setRequirement(project, i, on);
     if (!res.ok) {
       setError(res.error);
       await refreshLearner();
