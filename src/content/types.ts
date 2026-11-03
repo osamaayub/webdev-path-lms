@@ -24,7 +24,19 @@ export type Phase = {
   lessons: Lesson[];
 };
 
-export type Level = "Beginner" | "Intermediate" | "Advanced";
+export type QuizQuestion = {
+  id: string;
+  prompt: string;
+  options: string[];
+  /** 0-based index of the correct option. Server-only: never send to the browser. */
+  answer: number;
+  explain: string;
+};
+
+/** What the browser receives: no answers, no explanations until graded. */
+export type PublicQuizQuestion = Pick<QuizQuestion, "id" | "prompt" | "options">;
+
+export type Level ="Beginner" | "Intermediate" | "Advanced";
 
 export type Project = {
   slug: string;

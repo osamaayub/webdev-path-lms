@@ -1,9 +1,10 @@
 import { phases } from "./phases";
 import { projects } from "./projects";
-import type { Lesson, Phase, Project } from "./types";
+import { PASS_MARK, quizzes } from "./quizzes";
+import type { Lesson, Phase, Project, PublicQuizQuestion } from "./types";
 
-export type { Lesson, Phase, Project, Resource, Level } from "./types";
-export { phases, projects };
+export type { Lesson, Phase, Project, Resource, Level, QuizQuestion, PublicQuizQuestion } from "./types";
+export { phases, projects, quizzes, PASS_MARK };
 
 export const course = {
   title: "Full-Stack Web Development",
@@ -27,3 +28,8 @@ export function getLesson(phaseSlug: string, lessonSlug: string) {
 
 export const lessonId = (l: { phase: { slug: string }; slug: string }) => `${l.phase.slug}/${l.slug}`;
 export const projectFor = (phase: Phase): Project | undefined => getProject(phase.projectSlug);
+
+export const getQuiz = (id: string) => quizzes[id];
+
+/** The quiz as the browser may see it: prompts and options only. */
+export const publicQuiz = (id: string): PublicQuizQuestion[] => (quizzes[id] ?? []).map(({ id, prompt, options }) => ({ id, prompt, options }));
