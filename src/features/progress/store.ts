@@ -1,51 +1,62 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
-import { emptyProgress, parseProgress, type Progress } from "./model";
+import { useEffect, useSyncExternalStore } from "react";
+import { signedOutState, type LearnerState } from "./model";
 
-const KEY = "webdev-path:progress:v1";
+// Browser-side copy of the learner's data from /api/me.
+// One request per page load, shared by every component; refreshed after each change
+// and when the tab regains focus (so two open tabs stay in sync).
+
+type Snapshot = { status: "loading" | "ready" | "error"; state: LearnerState };
+
+const LOADING: Snapshot = { status: "loading", state: signedOutState(true) };
+let snapshot: Snapshot = LOADING;
+let inflight: Promise<void> | undefined;
 const listeners = new Set<() => void>();
-const SERVER = emptyProgress();
-let cache: { raw: string | null; value: Progress } | undefined;
 
-function read(): Progress {
-  let raw: string | null = null;
-  try {
-    raw = window.localStorage.getItem(KEY);
-  } catch {
-    // Storage blocked (private mode): progress lives in memory for this visit.
-    return cache?.value ?? SERVER;
-  }
-  if (!cache || cache.raw !== raw) cache = { raw, value: parseProgress(raw) };
-  return cache.value;
+const emit = () => listeners.forEach((l) => l());
+
+export function refreshLearner(): Promise<void> {
+  inflight ??= fetch("/api/me", { cache: "no-store", credentials: "same-origin" })
+    .then(async (res) => {
+      if (!res.ok) throw new Error(String(res.status));
+      snapshot = { status: "ready", state: (await res.json()) as LearnerState };
+    })
+    .catch(() => {
+      snapshot = { ...snapshot, status: snapshot.status === "ready" ? "ready" : "error" };
+    })
+    .finally(() => {
+      inflight = undefined;
+      emit();
+    });
+  return inflight;
 }
 
-export function saveProgress(next: Progress) {
-  const raw = JSON.stringify(next);
-  cache = { raw, value: next };
-  try {
-    window.localStorage.setItem(KEY, raw);
-  } catch {
-    // Ignore: in-memory cache still updates the UI.
-  }
-  listeners.forEach((l) => l());
+/** Apply a local change right away (optimistic), before the server confirms it. */
+export function patchLearner(fn: (s: LearnerState) => LearnerState) {
+  snapshot = { ...snapshot, state: fn(snapshot.state) };
+  emit();
 }
 
 function subscribe(listener: () => void) {
   listeners.add(listener);
-  const onStorage = (e: StorageEvent) => e.key === KEY && listener(); // sync across tabs
-  window.addEventListener("storage", onStorage);
+  const onFocus = () => document.visibilityState === "visible" && refreshLearner();
+  document.addEventListener("visibilitychange", onFocus);
   return () => {
     listeners.delete(listener);
-    window.removeEventListener("storage", onStorage);
+    document.removeEventListener("visibilitychange", onFocus);
   };
 }
 
-/** Current progress. Renders as empty on the server, then updates in the browser. */
-export function useProgress(): Progress {
-  return useSyncExternalStore(subscribe, read, () => SERVER);
+export function useLearner(): Snapshot {
+  const snap = useSyncExternalStore(subscribe, () => snapshot, () => LOADING);
+  // Refresh whenever a page using it mounts (e.g. after signing in or out, which
+  // navigates client-side). Concurrent calls share one request.
+  useEffect(() => {
+    void refreshLearner();
+  }, []);
+  return snap;
 }
 
-export function useUpdateProgress() {
-  return (fn: (p: Progress) => Progress) => saveProgress(fn(read()));
-}
+/** Shorthand for components that only need the data. */
+export const useProgress = () => useLearner().state;
