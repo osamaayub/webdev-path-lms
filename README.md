@@ -2,7 +2,7 @@
 
 # WebDev Path
 
-**A free, open-source learning portal that takes complete beginners from their first HTML tag to their first developer job in 24 weeks.**
+**A free, open-source LMS that takes complete beginners from their first HTML tag to their first developer job in 24 weeks: modules, quizzes, graded assignments and progress tracking.**
 
 [![CI](https://github.com/osamaayub/webdev-path-lms/actions/workflows/ci.yml/badge.svg)](https://github.com/osamaayub/webdev-path-lms/actions/workflows/ci.yml)
 ![Next.js 16](https://img.shields.io/badge/Next.js-16-14213D)
@@ -34,18 +34,26 @@ Most beginners don't fail from lack of material. They fail because there's too m
 ## Features
 
 **For learners**
-- **Route map:** the whole course drawn as a transit line. Each week is a stop that fills with the line's colour when you finish it. Click any stop to open that week.
-- **My progress:** your next stop, overall and per-line progress, and a one-click "continue" button.
-- **Weekly lessons:** what you'll be able to do, then three ordered steps (learn, practice, build) and hand-picked free resources.
-- **Projects:** tick requirements as you go, then submit your GitHub and live URLs. URLs are validated (must be a GitHub repo and an `https` site).
+- **Sign in with GitHub or Google.** No passwords. Progress follows you to any device.
+- **Route map:** the whole course drawn as a transit line. Each week is a stop that fills with the line's colour when you pass it.
+- **24 weekly modules:** objectives, then three steps (learn, practice, build) and hand-picked free resources.
+- **120 quiz questions:** a 5-question quiz closes every week. Score 4 of 5 to complete it. Wrong answers come back with an explanation; best score and attempts are kept.
+- **6 graded assignments:** tick the requirements, submit your GitHub repo and live link, and get a grade out of 100 with written feedback. Resubmit after "changes requested".
+- **My progress:** next stop, overall and per-line progress.
+- **Privacy page and self-service account deletion** (removes every record).
 
-**For developers reading the code**
-- **Next.js 16 App Router** with Partial Prerendering: all 36 content pages are static HTML, with small client islands for progress.
-- **Typed content:** the whole course is TypeScript data in `src/content`, checked by tests.
-- **Pure, tested progress logic** with Zod-validated storage that resets safely if data is corrupted.
-- **SEO:** per-page metadata and canonical URLs, Open Graph image, sitemap, robots, `Course` structured data, and **real 404 status codes** for unknown URLs via `proxy.ts`.
-- **Accessibility:** semantic landmarks, skip link, visible focus, labelled forms, `aria-pressed`, `progressbar` and `aria-current`, reduced-motion support.
-- **Performance:** self-hosted variable fonts (no Google request), no layout shift, Lighthouse 95+ on mobile.
+**For reviewers (admins)**
+- **Review dashboard at `/admin`:** stats (learners, in review, approved, weeks completed, quiz attempts), filter by status, oldest first, approve or request changes with a grade and feedback.
+- Admins are an email allowlist (`ADMIN_EMAILS`); everyone else gets a 404.
+
+**Engineering**
+- **Next.js 16 App Router** with Partial Prerendering: all course pages are static HTML on the CDN. Personal data loads from one private `/api/me` call.
+- **Neon Postgres + Drizzle ORM** with SQL migrations applied on every deploy. node-postgres pool attached to Vercel Fluid compute, as Neon recommends.
+- **Auth.js v5** (GitHub, Google) with the Drizzle adapter and signed JWT session cookies.
+- **Server Actions** for every write: authenticate, validate with Zod against the course content, rate-limit, then touch only the caller's rows.
+- **Security:** strict CSP, HSTS, no framing, server-graded quizzes, allowlisted admins, open-redirect-safe sign-in, structured logs without secrets. See [SECURITY.md](SECURITY.md).
+- **Tests:** 29 Vitest tests, including server actions against a real Postgres (PGlite) with migrations, plus a Playwright end-to-end run of the full learner and reviewer flow.
+- **SEO and accessibility:** metadata, sitemap, Open Graph image, real 404s, landmarks, labelled forms, keyboard support, reduced motion.
 
 ## Screenshots
 
@@ -70,7 +78,20 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000. No environment variables are needed.
+Open http://localhost:3000. The course works with no environment variables (read-only).
+
+To try accounts, quizzes and grading locally without any cloud services:
+
+```bash
+cp .env.example .env.local
+# then set in .env.local:
+#   DATABASE_URL=pglite:///tmp/webdev-path-db   (real Postgres in WASM, outside the repo)
+#   AUTH_SECRET=<output of: npx auth secret>
+#   AUTH_DEV_LOGIN=1                             (email-only login, dev only)
+#   ADMIN_EMAILS=you@example.com
+npm run db:migrate
+npm run dev
+```
 
 ### Scripts
 
@@ -81,39 +102,59 @@ Open http://localhost:3000. No environment variables are needed.
 | `npm run check` | Lint, type-check and tests (what CI runs, plus `build`) |
 | `npm test` | Vitest unit tests |
 | `npm run typecheck` | Generate route types, then `tsc --noEmit` |
+| `npm run db:generate` | Create a SQL migration from changes to `src/server/db/schema.ts` |
+| `npm run db:migrate` | Apply migrations (also runs automatically before `build`) |
 
 ### Environment variables
 
 | Name | Required | Description |
 | --- | --- | --- |
+| `DATABASE_URL` | For accounts | Neon pooled URL. Set by the Neon integration on Vercel. |
+| `DATABASE_URL_UNPOOLED` | Recommended | Neon direct URL, used for migrations. Set by the integration. |
+| `AUTH_SECRET` | For accounts | Signs session cookies. `npx auth secret` |
+| `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET` | One provider | GitHub OAuth app |
+| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | One provider | Google OAuth client |
+| `ADMIN_EMAILS` | For reviewing | Comma-separated reviewer emails |
+| `AUTH_DEV_LOGIN` | No | `1` enables an email-only login in development. Ignored in production. |
 | `NEXT_PUBLIC_SITE_URL` | No | Canonical URL for SEO tags and the sitemap. Defaults to the Vercel production URL. |
+
+Without a database and a provider the site stays fully readable and shows "Accounts are being set up" where personal features would be. See `.env.example` for where each value comes from.
 
 ## Architecture
 
 ```
 src/
-  content/            The course as typed data (phases, lessons, projects) + lookups
+  content/            The course as typed data: phases, lessons, projects, quizzes
+  server/             Server-only code
+    db/               Drizzle schema + client (Neon in prod, PGlite locally)
+    auth.ts           Auth.js config: providers, adapter, admin allowlist
+    viewer.ts         getViewer / requireUser / requireAdmin
+    learner.ts        All queries, scoped to the signed-in user's id
+    logger.ts, action-result.ts
   features/
-    progress/         model.ts (pure logic + Zod), store.ts (browser storage), UI pieces
-    projects/         Requirement checklist, submission form, status badge
-    route/            The route map component
-  components/         Header, footer, logo, buttons, progress bar
-  config/             Site info (SEO) and line colours
-  fonts/              Self-hosted Bricolage Grotesque and Atkinson Hyperlegible
-  app/                Routes only: home, /learn, /learn/[phase], /learn/[phase]/[lesson],
-                      /projects, /projects/[slug], sitemap, robots, OG image, 404
+    progress/         model.ts (pure rules + Zod), actions.ts (server actions), store.ts (client cache of /api/me)
+    quiz/             The weekly quiz
+    projects/         Checklist, submission form, status badge
+    admin/            Review form + action
+    auth/             Sign-in/out/delete actions, account menu, sign-in prompt
+    route/            The route map
+  app/                Routes: home, /learn/..., /projects/..., /sign-in, /admin, /security, /api/me, /api/auth
   proxy.ts            Real 404 for unknown lesson, line or project URLs
-test/                 Content integrity and progress tests
-docs/                 ARCHITECTURE.md and screenshots
+drizzle/              SQL migrations
+scripts/migrate.mjs   Applies migrations before each build
+test/                 Content, grading, validation and server-action tests
 ```
 
 ```mermaid
 flowchart LR
-  C[src/content<br/>typed course data] -->|build| P[Pre-rendered pages]
-  P --> CDN[Vercel CDN] --> B[Browser]
-  B --> I[Client islands<br/>route map, progress, checklist]
-  I <--> S[(localStorage)]
-  X[proxy.ts] -->|unknown URL| N[404]
+  C[src/content<br/>lessons, quizzes, projects] -->|build| P[Static pages on CDN]
+  P --> B[Browser]
+  B -->|GET /api/me| A[Route handler]
+  B -->|Server Actions<br/>quiz, checklist, submit, review| SA[Auth + Zod + rate limit]
+  A --> L[learner.ts]
+  SA --> L
+  L --> DB[(Neon Postgres)]
+  B -->|OAuth| GH[GitHub / Google]
 ```
 
 Design decisions, the request flow and the plan for accounts: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
@@ -139,15 +180,19 @@ All content lives in `src/content`:
 ## Deploy
 
 1. Import the repo on [Vercel](https://vercel.com/new).
-2. Deploy. No environment variables are required.
-3. Optional: add a custom domain and set `NEXT_PUBLIC_SITE_URL` to it.
+2. In Vercel, **Storage / Integrations → Neon → Link existing account**, pick this project. It sets `DATABASE_URL` and `DATABASE_URL_UNPOOLED`.
+3. Create a GitHub OAuth app (and optionally a Google client) with the callback URLs from `.env.example`.
+4. Add `AUTH_SECRET`, the provider IDs and secrets (as **Secret** type), and `ADMIN_EMAILS` in Project → Settings → Environment Variables.
+5. Redeploy. Migrations run before the build, so the tables are created automatically.
 
 ## Roadmap
 
-- [ ] Accounts and cloud progress (Auth.js + Postgres) behind the existing progress model
-- [ ] Mentor review and feedback on submitted projects
+- [x] Accounts and cloud progress (Auth.js + Neon Postgres)
+- [x] Weekly quizzes graded on the server
+- [x] Graded project reviews with feedback
+- [ ] Email when a project is reviewed
 - [ ] Video lessons embedded from [YouTube](https://www.youtube.com/@osamaayubdev)
-- [ ] Certificate when all six projects are submitted
+- [ ] Certificate when all six projects are approved
 - [ ] Dark mode
 
 ## Contributing
