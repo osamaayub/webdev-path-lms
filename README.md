@@ -10,7 +10,7 @@
 ![Lighthouse](https://img.shields.io/badge/Lighthouse-95%2B%20%C2%B7%20100%20a11y%20%C2%B7%20100%20SEO-0F9D58)
 ![License: MIT](https://img.shields.io/badge/license-MIT-E9A800)
 
-[Live demo](#live-demo) · [Features](#features) · [Screenshots](#screenshots) · [Quick start](#quick-start) · [Architecture](#architecture) · [Roadmap](#roadmap)
+[Live demo](https://webdev-path-lms.vercel.app) · [Features](#features) · [Screenshots](#screenshots) · [Quick start](#quick-start) · [Architecture](#architecture) · [Roadmap](#roadmap)
 
 <img src="docs/screenshots/home.jpg" alt="WebDev Path home page: the course drawn as a six-line transit route with 24 weekly stops" width="900">
 
@@ -29,7 +29,7 @@ Most beginners don't fail from lack of material. They fail because there's too m
 
 ## Live demo
 
-Deployed on Vercel. The link is in the repo's **About** section on the right.
+**[webdev-path-lms.vercel.app](https://webdev-path-lms.vercel.app)**, deployed on Vercel. Every push to `main` redeploys automatically.
 
 ## Features
 
