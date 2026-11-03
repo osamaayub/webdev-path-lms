@@ -5,20 +5,23 @@ import { ProgressBar } from "@/components/progress-bar";
 import { colorFor } from "@/config/theme";
 import { RouteMap, type RouteLine } from "@/features/route/route-map";
 import { nextLesson, percent } from "../model";
-import { useProgress } from "../store";
+import { SignInPrompt } from "@/features/auth/components/sign-in-prompt";
+import { useLearner } from "../store";
 
 export function CourseProgress({ lines }: { lines: RouteLine[] }) {
-  const progress = useProgress();
+  const { state: progress, status } = useLearner();
+  const { completed } = progress;
   const stops = lines.flatMap((l) => l.stops.map((s) => ({ ...s, line: l })));
-  const all = percent(progress, stops.map((s) => s.id));
-  const next = nextLesson(progress, stops);
-  const done = stops.filter((s) => progress.completedLessons.includes(s.id)).length;
+  const all = percent(completed, stops.map((s) => s.id));
+  const next = nextLesson(completed, stops);
+  const done = stops.filter((s) => completed.includes(s.id)).length;
   const c = next ? colorFor(next.line.slug) : colorFor("ai-and-careers");
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr]">
       <div className="space-y-8">
-        <section className="rounded-[24px] p-7" style={{ background: c.soft }} aria-labelledby="next-stop">
+        <SignInPrompt title="Sign in to track your route" body="Pass each week's quiz to fill in a stop. Your progress follows you to any device." />
+        <section aria-busy={status === "loading"} className="rounded-[24px] p-7" style={{ background: c.soft }} aria-labelledby="next-stop">
           {next ? (
             <>
               <p id="next-stop" style={{ color: c.ink }}>{done === 0 ? "Your first stop" : "Your next stop"}</p>
@@ -49,7 +52,7 @@ export function CourseProgress({ lines }: { lines: RouteLine[] }) {
           <h2 id="lines" className="font-display text-xl font-bold">By line</h2>
           <ul className="mt-3 divide-y divide-rule border-y border-rule">
             {lines.map((l) => {
-              const v = percent(progress, l.stops.map((s) => s.id));
+              const v = percent(completed, l.stops.map((s) => s.id));
               const lc = colorFor(l.slug);
               return (
                 <li key={l.slug}>
