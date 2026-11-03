@@ -12,7 +12,7 @@ export default function LearnPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <h1 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">My progress</h1>
-      <p className="mt-2 text-muted">Saved in this browser. Clearing your browser data resets it.</p>
+      <p className="mt-2 text-muted">Pass a week&apos;s quiz to complete it. Saved to your account.</p>
       <div className="mt-10"><CourseProgress lines={routeLines()} /></div>
     </div>
   );
