@@ -10,7 +10,7 @@ export function SubmissionForm({ project, total }: { project: string; total: num
   const state = useProgress().projects[project];
   const update = useUpdateProgress();
   const [errors, setErrors] = useState<Errors>({});
-  const ready = (state?.checked.length ?? 0) === total;
+  const remaining = total - (state?.checked.length ?? 0);
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -30,29 +30,27 @@ export function SubmissionForm({ project, total }: { project: string; total: num
 
   if (state?.submission) {
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5" role="status">
-        <p className="font-semibold text-emerald-900">Submitted {new Date(state.submission.submittedAt).toLocaleDateString()}</p>
-        <ul className="mt-2 space-y-1 text-sm">
-          <li><a className="text-emerald-900 underline" href={state.submission.repoUrl}>GitHub repo</a></li>
-          <li><a className="text-emerald-900 underline" href={state.submission.liveUrl}>Live site</a></li>
+      <div className="rounded-[24px] bg-[#E2F5EB] p-7" role="status">
+        <p className="font-display text-2xl font-bold text-[#0A6B3C]">Project submitted</p>
+        <p className="mt-1 text-ink/80">On {new Date(state.submission.submittedAt).toLocaleDateString()}. Add it to your portfolio and share it on LinkedIn.</p>
+        <ul className="mt-4 flex flex-wrap gap-3">
+          <li><a className="inline-flex rounded-full bg-white px-5 py-2.5 font-semibold" href={state.submission.repoUrl}>View the code</a></li>
+          <li><a className="inline-flex rounded-full bg-white px-5 py-2.5 font-semibold" href={state.submission.liveUrl}>View the live site</a></li>
         </ul>
-        <p className="mt-3 text-sm text-emerald-900">Share it on LinkedIn and add it to your portfolio.</p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-5">
-      {!ready && <p className="text-sm text-zinc-600">Tick every requirement above before you submit.</p>}
-      <Field name="repoUrl" label="GitHub repository URL" placeholder="https://github.com/you/project" errors={errors.repoUrl} />
-      <Field name="liveUrl" label="Live site URL" placeholder="https://your-project.vercel.app" errors={errors.liveUrl} />
-      <button
-        type="submit"
-        disabled={!ready}
-        className="rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        Submit project
-      </button>
+    <form onSubmit={onSubmit} noValidate className="space-y-5 rounded-[24px] border border-rule bg-white p-7">
+      <Field name="repoUrl" label="GitHub repository" placeholder="https://github.com/you/project" errors={errors.repoUrl} />
+      <Field name="liveUrl" label="Live site" placeholder="https://your-project.vercel.app" errors={errors.liveUrl} />
+      <div className="flex flex-wrap items-center gap-4">
+        <button type="submit" disabled={remaining > 0} className="rounded-full bg-ink px-6 py-3 font-semibold text-white hover:bg-[#22325a] disabled:cursor-not-allowed disabled:bg-ink/30">
+          Submit project
+        </button>
+        {remaining > 0 && <p className="text-[15px] text-muted">Tick the {remaining} remaining requirement{remaining === 1 ? "" : "s"} to submit.</p>}
+      </div>
     </form>
   );
 }
@@ -61,7 +59,7 @@ function Field({ name, label, placeholder, errors }: { name: string; label: stri
   const id = `field-${name}`;
   return (
     <div>
-      <label htmlFor={id} className="block text-sm font-medium text-zinc-800">{label}</label>
+      <label htmlFor={id} className="block font-semibold">{label}</label>
       <input
         id={id}
         name={name}
@@ -70,9 +68,9 @@ function Field({ name, label, placeholder, errors }: { name: string; label: stri
         placeholder={placeholder}
         aria-invalid={errors ? true : undefined}
         aria-describedby={errors ? `${id}-error` : undefined}
-        className="mt-1 w-full rounded-xl border border-zinc-300 px-4 py-2.5 text-zinc-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+        className="mt-2 w-full rounded-xl border-2 border-rule bg-paper px-4 py-3 outline-none focus:border-ink focus:bg-white aria-[invalid=true]:border-[#C2361B]"
       />
-      {errors && <p id={`${id}-error`} className="mt-1 text-sm text-red-700">{errors[0]}</p>}
+      {errors && <p id={`${id}-error`} className="mt-1.5 text-[15px] text-[#C2361B]">{errors[0]}</p>}
     </div>
   );
 }

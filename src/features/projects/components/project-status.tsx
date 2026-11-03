@@ -4,8 +4,7 @@ import { useProgress } from "@/features/progress/store";
 
 export function ProjectStatus({ project, total }: { project: string; total: number }) {
   const state = useProgress().projects[project];
-  if (state?.submission) return <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800">Submitted</span>;
-  const n = state?.checked.length ?? 0;
-  if (n > 0) return <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">{n}/{total} done</span>;
-  return <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-600">Not started</span>;
+  const text = state?.submission ? "Submitted" : state?.checked.length ? `${state.checked.length} of ${total} done` : "Not started";
+  const tone = state?.submission ? "bg-[#E2F5EB] text-[#0A6B3C]" : state?.checked.length ? "bg-[#FEF6DC] text-[#7A5600]" : "bg-paper text-muted";
+  return <span className={`whitespace-nowrap rounded-full px-3 py-1 text-[14px] font-semibold ${tone}`}>{text}</span>;
 }
