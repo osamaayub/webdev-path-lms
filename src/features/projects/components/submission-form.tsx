@@ -1,61 +1,101 @@
 "use client";
 
-import { useState } from "react";
-import { submitProject } from "@/features/progress/model";
-import { useProgress, useUpdateProgress } from "@/features/progress/store";
+import { useState, useTransition } from "react";
+import { SignInPrompt } from "@/features/auth/components/sign-in-prompt";
+import { submitProject } from "@/features/progress/actions";
+import { statusLabel, type SubmissionView } from "@/features/progress/model";
+import { refreshLearner, useLearner } from "@/features/progress/store";
 
-type Errors = { repoUrl?: string[]; liveUrl?: string[] };
+type Errors = Record<string, string[] | undefined>;
+
+const tone: Record<SubmissionView["status"], { bg: string; fg: string; body: string }> = {
+  submitted: { bg: "#FEF6DC", fg: "#7A5600", body: "Your project is waiting for a review. You'll see the grade and feedback here." },
+  changes_requested: { bg: "#FDEDE8", fg: "#9A2E10", body: "Read the feedback, make the changes, then submit again below." },
+  approved: { bg: "#E2F5EB", fg: "#0A6B3C", body: "Approved. Add it to your portfolio and share it on LinkedIn." },
+};
 
 export function SubmissionForm({ project, total }: { project: string; total: number }) {
-  const state = useProgress().projects[project];
-  const update = useUpdateProgress();
+  const { state, status } = useLearner();
   const [errors, setErrors] = useState<Errors>({});
-  const remaining = total - (state?.checked.length ?? 0);
+  const [message, setMessage] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [pending, start] = useTransition();
+
+  if (status !== "loading" && !state.viewer) {
+    return <SignInPrompt title="Sign in to submit your project" body="Submit your GitHub repo and live link. A reviewer grades it and sends you feedback." />;
+  }
+
+  const p = state.projects[project];
+  const sub = p?.submission;
+  const remaining = total - (p?.checked.length ?? 0);
+  const showForm = !sub || (sub.status !== "approved" && (sub.status === "changes_requested" || editing));
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
-    const input = { repoUrl: String(form.get("repoUrl") ?? "").trim(), liveUrl: String(form.get("liveUrl") ?? "").trim() };
-    let failed: Errors | undefined;
-    update((p) => {
-      const result = submitProject(p, project, input);
-      if (!result.ok) {
-        failed = result.errors;
-        return p;
+    const input = { repoUrl: String(form.get("repoUrl") ?? "").trim(), liveUrl: String(form.get("liveUrl") ?? "").trim(), notes: String(form.get("notes") ?? "").trim() };
+    setMessage(null);
+    start(async () => {
+      const res = await submitProject(project, input);
+      if (!res.ok) {
+        setErrors(res.fieldErrors ?? {});
+        setMessage(res.error);
+        return;
       }
-      return result.progress;
+      setErrors({});
+      setEditing(false);
+      await refreshLearner();
     });
-    setErrors(failed ?? {});
-  }
-
-  if (state?.submission) {
-    return (
-      <div className="rounded-[24px] bg-[#E2F5EB] p-7" role="status">
-        <p className="font-display text-2xl font-bold text-[#0A6B3C]">Project submitted</p>
-        <p className="mt-1 text-ink/80">On {new Date(state.submission.submittedAt).toLocaleDateString()}. Add it to your portfolio and share it on LinkedIn.</p>
-        <ul className="mt-4 flex flex-wrap gap-3">
-          <li><a className="inline-flex rounded-full bg-white px-5 py-2.5 font-semibold" href={state.submission.repoUrl}>View the code</a></li>
-          <li><a className="inline-flex rounded-full bg-white px-5 py-2.5 font-semibold" href={state.submission.liveUrl}>View the live site</a></li>
-        </ul>
-      </div>
-    );
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-5 rounded-[24px] border border-rule bg-white p-7">
-      <Field name="repoUrl" label="GitHub repository" placeholder="https://github.com/you/project" errors={errors.repoUrl} />
-      <Field name="liveUrl" label="Live site" placeholder="https://your-project.vercel.app" errors={errors.liveUrl} />
-      <div className="flex flex-wrap items-center gap-4">
-        <button type="submit" disabled={remaining > 0} className="rounded-full bg-ink px-6 py-3 font-semibold text-white hover:bg-[#22325a] disabled:cursor-not-allowed disabled:bg-ink/30">
-          Submit project
-        </button>
-        {remaining > 0 && <p className="text-[15px] text-muted">Tick the {remaining} remaining requirement{remaining === 1 ? "" : "s"} to submit.</p>}
-      </div>
-    </form>
+    <div className="space-y-6">
+      {sub && (
+        <div className="rounded-[24px] p-7" style={{ background: tone[sub.status].bg }} role="status">
+          <p className="font-display text-2xl font-bold" style={{ color: tone[sub.status].fg }}>
+            {statusLabel[sub.status]}
+            {sub.grade !== null && sub.status !== "submitted" && <span className="text-ink">, grade {sub.grade}/100</span>}
+          </p>
+          <p className="mt-1 text-ink/80">{tone[sub.status].body}</p>
+          {sub.feedback && (
+            <figure className="mt-4 rounded-2xl bg-white p-5">
+              <figcaption className="text-[15px] text-muted">{sub.status === "submitted" ? "Feedback on your last version" : "Reviewer feedback"}</figcaption>
+              <blockquote className="mt-1 whitespace-pre-line">{sub.feedback}</blockquote>
+            </figure>
+          )}
+          <ul className="mt-4 flex flex-wrap gap-3">
+            <li><a className="inline-flex rounded-full bg-white px-5 py-2.5 font-semibold" href={sub.repoUrl} target="_blank" rel="noopener noreferrer">View the code</a></li>
+            <li><a className="inline-flex rounded-full bg-white px-5 py-2.5 font-semibold" href={sub.liveUrl} target="_blank" rel="noopener noreferrer">View the live site</a></li>
+            {sub.status === "submitted" && !editing && (
+              <li><button type="button" onClick={() => setEditing(true)} className="inline-flex rounded-full px-5 py-2.5 font-semibold underline underline-offset-4">Update links</button></li>
+            )}
+          </ul>
+          <p className="mt-3 text-[15px] text-muted">Submitted {sub.attempts} time{sub.attempts === 1 ? "" : "s"}, last on {new Date(sub.updatedAt).toLocaleDateString()}.</p>
+        </div>
+      )}
+
+      {showForm && (
+        <form onSubmit={onSubmit} noValidate className="space-y-5 rounded-[24px] border border-rule bg-white p-7">
+          <Field name="repoUrl" label="GitHub repository" placeholder="https://github.com/you/project" defaultValue={sub?.repoUrl} errors={errors.repoUrl} />
+          <Field name="liveUrl" label="Live site" placeholder="https://your-project.vercel.app" defaultValue={sub?.liveUrl} errors={errors.liveUrl} />
+          <div>
+            <label htmlFor="field-notes" className="block font-semibold">Notes for the reviewer <span className="font-normal text-muted">(optional)</span></label>
+            <textarea id="field-notes" name="notes" rows={3} maxLength={1000} defaultValue={sub?.notes ?? ""} className="mt-2 w-full rounded-xl border-2 border-rule bg-paper px-4 py-3 outline-none focus:border-ink focus:bg-white" />
+          </div>
+          {message && <p role="alert" className="rounded-xl bg-[#FDEDE8] px-4 py-3 text-[#9A2E10]">{message}</p>}
+          <div className="flex flex-wrap items-center gap-4">
+            <button type="submit" disabled={remaining > 0 || pending || status === "loading"} className="rounded-full bg-ink px-6 py-3 font-semibold text-white hover:bg-[#22325a] disabled:cursor-not-allowed disabled:bg-ink/30">
+              {pending ? "Submitting..." : sub ? "Submit again for review" : "Submit for review"}
+            </button>
+            {remaining > 0 && <p className="text-[15px] text-muted">Tick the {remaining} remaining requirement{remaining === 1 ? "" : "s"} to submit.</p>}
+          </div>
+        </form>
+      )}
+    </div>
   );
 }
 
-function Field({ name, label, placeholder, errors }: { name: string; label: string; placeholder: string; errors?: string[] }) {
+function Field({ name, label, placeholder, defaultValue, errors }: { name: string; label: string; placeholder: string; defaultValue?: string; errors?: string[] }) {
   const id = `field-${name}`;
   return (
     <div>
@@ -65,7 +105,10 @@ function Field({ name, label, placeholder, errors }: { name: string; label: stri
         name={name}
         type="url"
         inputMode="url"
+        required
+        maxLength={300}
         placeholder={placeholder}
+        defaultValue={defaultValue}
         aria-invalid={errors ? true : undefined}
         aria-describedby={errors ? `${id}-error` : undefined}
         className="mt-2 w-full rounded-xl border-2 border-rule bg-paper px-4 py-3 outline-none focus:border-ink focus:bg-white aria-[invalid=true]:border-[#C2361B]"
