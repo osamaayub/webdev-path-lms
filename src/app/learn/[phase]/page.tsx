@@ -6,6 +6,10 @@ import { getPhase, lessonId, phases, projectFor } from "@/content";
 import { StopDot } from "@/features/progress/components/lesson-status";
 import { PhaseProgress } from "@/features/progress/components/phase-progress";
 
+// Every URL is prerendered by generateStaticParams, so pages are served from the CDN.
+// Skip the dev-time "instant navigation" check, which flags the params read below.
+export const instant = false;
+
 export function generateStaticParams() {
   return phases.map((p) => ({ phase: p.slug }));
 }
