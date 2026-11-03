@@ -6,6 +6,10 @@ import { getPhase, getProject, projects } from "@/content";
 import { RequirementChecklist } from "@/features/projects/components/requirement-checklist";
 import { SubmissionForm } from "@/features/projects/components/submission-form";
 
+// Every URL is prerendered by generateStaticParams, so pages are served from the CDN.
+// Skip the dev-time "instant navigation" check, which flags the params read below.
+export const instant = false;
+
 export function generateStaticParams() {
   return projects.map((p) => ({ slug: p.slug }));
 }
@@ -55,7 +59,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
 
         <section>
           <h2 className="font-display text-2xl font-bold">Requirements</h2>
-          <p className="mt-1 text-muted">Tick each one when it&apos;s done. Saved in this browser.</p>
+          <p className="mt-1 text-muted">Tick each one when it&apos;s done. Saved to your account.</p>
           <div className="mt-4"><RequirementChecklist project={project.slug} items={project.requirements} color={c.line} /></div>
         </section>
 
