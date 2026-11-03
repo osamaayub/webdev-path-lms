@@ -34,7 +34,7 @@ vi.mock("@/server/viewer", async () => {
   };
 });
 
-const { submitQuiz, toggleRequirement, submitProject } = await import("@/features/progress/actions");
+const { submitQuiz, setRequirement, submitProject } = await import("@/features/progress/actions");
 const { reviewSubmissionAction } = await import("@/features/admin/actions");
 const { getLearnerState, listSubmissions } = await import("@/server/learner");
 
@@ -116,13 +116,21 @@ describe("project submission and review", () => {
 
   it("validates requirement indexes against the project", async () => {
     viewer = ana;
-    expect((await toggleRequirement(slug, 99)).ok).toBe(false);
-    expect((await toggleRequirement("nope", 0)).ok).toBe(false);
+    expect((await setRequirement(slug, 99, true)).ok).toBe(false);
+    expect((await setRequirement("nope", 0, true)).ok).toBe(false);
+  });
+
+  it("keeps every tick when several arrive at the same time, and unticks cleanly", async () => {
+    viewer = ben;
+    await Promise.all([0, 1, 2, 3, 4].map((i) => setRequirement("api-search-app", i, true)));
+    expect((await getLearnerState(ben.id)).projects["api-search-app"].checked).toEqual([0, 1, 2, 3, 4]);
+    await Promise.all([setRequirement("api-search-app", 1, false), setRequirement("api-search-app", 3, false), setRequirement("api-search-app", 1, false)]);
+    expect((await getLearnerState(ben.id)).projects["api-search-app"].checked).toEqual([0, 2, 4]);
   });
 
   it("won't accept a submission until every requirement is ticked", async () => {
     viewer = ana;
-    await toggleRequirement(slug, 0);
+    await setRequirement(slug, 0, true);
     const res = await submitProject(slug, links);
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.error).toMatch(/Tick every requirement/);
@@ -130,7 +138,7 @@ describe("project submission and review", () => {
 
   it("returns field errors for bad links", async () => {
     viewer = ana;
-    for (let i = 1; i < total; i++) await toggleRequirement(slug, i);
+    for (let i = 1; i < total; i++) await setRequirement(slug, i, true);
     const res = await submitProject(slug, { repoUrl: "https://gitlab.com/a/b", liveUrl: "http://x.com" });
     expect(res.ok).toBe(false);
     if (!res.ok) {
