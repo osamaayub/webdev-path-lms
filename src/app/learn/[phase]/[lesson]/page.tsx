@@ -2,9 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { colorFor } from "@/config/theme";
-import { allLessons, getLesson, lessonId } from "@/content";
-import { CompleteButton } from "@/features/progress/components/complete-button";
+import { allLessons, getLesson, lessonId, PASS_MARK, publicQuiz } from "@/content";
+import { LessonQuiz } from "@/features/quiz/components/lesson-quiz";
 import { StopDot } from "@/features/progress/components/lesson-status";
+
+// Every URL is prerendered by generateStaticParams, so pages are served from the CDN.
+// Skip the dev-time "instant navigation" check, which flags the params read below.
+export const instant = false;
 
 export function generateStaticParams() {
   return allLessons.map((l) => ({ phase: l.phase.slug, lesson: l.slug }));
@@ -101,9 +105,16 @@ export default async function LessonPage({ params }: PageProps<"/learn/[phase]/[
           </Step>
         </div>
 
-        <div className="mt-14 rounded-[24px] border border-rule bg-white p-6">
-          <CompleteButton id={lessonId(l)} nextHref={next ? href(next) : undefined} nextLabel={next ? `week ${next.week}` : undefined} color={c.line} />
-        </div>
+        <section aria-label="Weekly quiz" className="mt-14 rounded-[24px] border border-rule bg-white p-6 sm:p-8">
+          <LessonQuiz
+            lessonId={lessonId(l)}
+            questions={publicQuiz(lessonId(l))}
+            passPercent={Math.round(PASS_MARK * 100)}
+            color={c.line}
+            nextHref={next ? href(next) : undefined}
+            nextLabel={next ? `week ${next.week}` : undefined}
+          />
+        </section>
 
         <nav aria-label="Previous and next week" className="mt-8 grid gap-3 sm:grid-cols-2">
           {prev ? (
