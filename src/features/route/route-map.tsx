@@ -14,7 +14,7 @@ const W = 560, X0 = 62, X1 = 498, ROW = 92, Y0 = 64, R = ROW / 2;
  * Each week is a stop; stops you have finished fill in with the phase colour.
  */
 export function RouteMap({ lines, animate = false }: { lines: RouteLine[]; animate?: boolean }) {
-  const done = new Set(useProgress().completedLessons);
+  const done = new Set(useProgress().completed);
   const H = Y0 + (lines.length - 1) * ROW + 56;
 
   return (
