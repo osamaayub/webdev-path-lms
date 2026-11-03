@@ -3,9 +3,9 @@
 import { z } from "zod";
 import { getProject, getQuiz, PASS_MARK } from "@/content";
 import { fail, safely, type ActionResult } from "@/server/action-result";
-import { countRecentAttempts, getChecklist, getSubmission, recordQuizAttempt, saveChecklist, upsertSubmission } from "@/server/learner";
+import { countRecentAttempts, getChecklist, getSubmission, recordQuizAttempt, setChecklistItem, upsertSubmission } from "@/server/learner";
 import { requireUser } from "@/server/viewer";
-import { gradeQuiz, quizAnswersSchema, submissionSchema, toggleIndex, type GradedQuiz } from "./model";
+import { gradeQuiz, quizAnswersSchema, submissionSchema, type GradedQuiz } from "./model";
 
 // Server Actions are public HTTP endpoints. Each one: authenticates, validates every
 // input against the course content, rate-limits, then writes only the caller's own rows.
@@ -31,14 +31,15 @@ export async function submitQuiz(lessonId: string, answers: number[]): Promise<A
   });
 }
 
-export async function toggleRequirement(projectSlug: string, index: number): Promise<ActionResult<number[]>> {
-  return safely("toggleRequirement", async () => {
+/** Sets one requirement to ticked (on = true) or unticked. Idempotent, so retries and fast clicks are safe. */
+export async function setRequirement(projectSlug: string, index: number, on: boolean): Promise<ActionResult<number[]>> {
+  return safely("setRequirement", async () => {
     const user = await requireUser();
     const project = typeof projectSlug === "string" ? getProject(projectSlug) : undefined;
     if (!project) return fail("This project doesn't exist.");
     if (!Number.isInteger(index) || index < 0 || index >= project.requirements.length) return fail("That requirement doesn't exist.");
-    const checked = toggleIndex(await getChecklist(user.id, project.slug), index);
-    await saveChecklist(user.id, project.slug, checked);
+    if (typeof on !== "boolean") return fail("Invalid request.");
+    const checked = await setChecklistItem(user.id, project.slug, index, on);
     return { ok: true, data: checked };
   });
 }
