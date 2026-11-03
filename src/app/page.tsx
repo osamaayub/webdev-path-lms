@@ -45,7 +45,7 @@ export default function Home() {
             <ButtonLink href="/learn/foundations/how-the-web-works">Start week 1</ButtonLink>
             <ButtonLink href="/projects" variant="secondary">See the {projects.length} projects</ButtonLink>
           </div>
-          <p className="mt-6 text-[15px] text-muted">No sign-up. Your progress is saved in this browser.</p>
+          <p className="mt-6 text-[15px] text-muted">Free forever. Sign in with GitHub or Google to save your progress.</p>
         </div>
         <div className="rounded-[28px] border border-rule bg-white p-4 shadow-[0_1px_0_#dfe3ec,0_24px_60px_-30px_rgba(20,33,61,0.35)] sm:p-6">
           <RouteMap lines={lines} animate />
