@@ -4,72 +4,95 @@
 
 | Goal | How |
 | --- | --- |
-| Instant page loads, great SEO | Content is static data; every page is pre-rendered at build time and served from the CDN |
-| No sign-up to start learning | Progress lives in the browser (localStorage), behind a small store |
-| Easy to grow into a real LMS | Progress is plain data with pure functions, so a database can replace the storage without UI changes |
-| Content anyone can edit safely | Typed content files, checked by tests on every push |
-| A design that teaches the structure | The course is drawn as a transit route; each phase has its own line colour used on every page |
+| Instant page loads, great SEO | Course content is typed data; every lesson, line and project page is prerendered and served from the CDN |
+| Real LMS features | Accounts, quizzes, graded assignments, reviewer dashboard, all backed by Postgres |
+| Secure by default | Every write is a Server Action that authenticates, validates and only touches the caller's rows |
+| Readable without an account | Personal data loads separately, so the course works for everyone and for search engines |
+| Content anyone can edit safely | Typed files, checked by tests on every push |
 
 ## System overview
 
 ```mermaid
 flowchart LR
-  A[src/content<br/>typed course data] -->|build time| B[Next.js pages<br/>pre-rendered HTML]
-  B --> C[Vercel CDN]
-  C --> D[Browser]
-  D --> E[Client islands<br/>progress, checklist, submit]
-  E <--> F[(localStorage<br/>progress v1)]
-  P[proxy.ts] -->|unknown slug: 404| D
+  subgraph Build
+    C[src/content<br/>lessons, quizzes, projects] --> P[Prerendered pages]
+    M[drizzle/ migrations] --> MIG[scripts/migrate.mjs]
+  end
+  P --> CDN[Vercel CDN] --> B[Browser]
+  B -->|GET /api/me, private| API[Route handler]
+  B -->|Server Actions| SA[quiz, checklist, submit,<br/>review, delete account]
+  B -->|OAuth| IDP[GitHub / Google]
+  IDP --> AUTH[Auth.js /api/auth]
+  API --> V[getViewer]
+  SA --> V
+  AUTH --> DB
+  V --> L[learner.ts queries]
+  L --> DB[(Neon Postgres)]
+  MIG --> DB
 ```
 
 ## Layers
 
 ```
-content/     What is taught (data only, no React)
-features/    What users do (progress, projects): model, store, components
-components/  Shared presentational pieces
-app/         Routes: read content, render pages, place client islands
+content/         What is taught. Data only, no React. Quiz answers live here and never leave the server.
+server/          Server-only (import "server-only"): db client, auth, viewer, queries, logging.
+features/<x>/    What users do: model.ts (pure rules + Zod), actions.ts (Server Actions), components/.
+components/      Shared presentational pieces.
+app/             Routes. Read content, render pages, place client islands.
 ```
 
 Rules:
 
-1. Pages are Server Components and read content directly. Only the parts that change per user (progress bars, buttons, forms) are Client Components.
-2. `features/progress/model.ts` has no React or browser code. It is pure functions over a Zod-validated shape, so it is unit tested and reusable on a server.
-3. `features/progress/store.ts` is the only file that touches `localStorage`. It uses `useSyncExternalStore`, renders empty on the server (no hydration mismatch), and syncs across tabs through the `storage` event.
+1. **Pages stay static.** Content pages never read cookies. Personal UI is a client island that reads one cached snapshot of `/api/me` (`features/progress/store.ts`, `useSyncExternalStore`, refreshed on mount and tab focus). This keeps all 36 course pages on the CDN while each learner sees their own progress.
+2. **Writes go through Server Actions** in `features/*/actions.ts`. Each one: `requireUser()` or `requireAdmin()`, Zod-validate, check against the course content, rate-limit, call `server/learner.ts`. Errors become safe messages via `safely()`.
+3. **Queries live in one file** (`server/learner.ts`) and always take the user id from the session.
+4. **Pure rules are shared.** `features/progress/model.ts` (grading, schemas, progress maths) runs in tests, actions and the browser.
+
+## Data model
+
+```mermaid
+erDiagram
+  user ||--o{ account : "OAuth logins"
+  user ||--o{ lesson_progress : completes
+  user ||--o{ quiz_attempt : takes
+  user ||--o{ project_checklist : ticks
+  user ||--o{ submission : submits
+  user ||--o{ submission : "reviews (reviewed_by)"
+
+  lesson_progress { text user_id PK; text lesson_id PK; timestamp completed_at }
+  quiz_attempt { uuid id PK; text user_id; text lesson_id; int score; int total; bool passed; jsonb answers; timestamp created_at }
+  project_checklist { text user_id PK; text project_slug PK; jsonb checked }
+  submission { uuid id PK; text user_id; text project_slug; text repo_url; text live_url; text notes; enum status; int grade; text feedback; int attempts }
+```
+
+- Course content (lesson ids, project slugs) is referenced by string id, not foreign keys: content is versioned in Git, data in Postgres.
+- `ON DELETE CASCADE` from `user` means deleting an account removes every learner record.
+- Indexes: `(user_id, lesson_id, created_at)` for attempt history and rate limits; unique `(user_id, project_slug)` for submissions; `(status, updated_at)` for the review queue.
+
+## Key flows
+
+**Quiz:** client sends `lessonId` + chosen indexes → action checks the session, the lesson, the answer count and range, and the hourly limit → grades against `content/quizzes.ts` → stores the attempt → if passed, inserts `lesson_progress` (idempotent) → returns per-question results with explanations.
+
+**Assignment:** learner ticks requirements (stored per index, validated against the project) → submit requires every requirement ticked and valid GitHub + https URLs → status `submitted` → reviewer approves or requests changes with a grade (0 to 100) and feedback → learner sees it on the project page; resubmitting increments `attempts` and returns it to the queue. Approved work is locked.
 
 ## Key decisions
 
-**Content as TypeScript, not a CMS.** For one author and 24 lessons, typed files give autocomplete, review in pull requests and zero runtime cost. A CMS can be added later behind the same `content/index.ts` functions.
+**Neon + node-postgres on Vercel.** Neon's guidance for Vercel Fluid compute is a `pg` pool attached with `attachDatabasePool`, on the pooled URL. Migrations use the direct (unpooled) URL. Locally and in tests, the same Drizzle code runs on PGlite (Postgres compiled to WASM), so tests hit a real Postgres with the real migrations.
 
-**Progress in the browser first.** Learners start in one click. Stored data is versioned (`version: 1`) and validated on read, so corrupted or old data resets instead of crashing.
+**Migrations on deploy.** `npm run build` runs `scripts/migrate.mjs` first. Drizzle records applied migrations, so it's safe to repeat. Without `DATABASE_URL` it skips, and the site runs read-only.
 
-**Real 404s.** With Partial Prerendering, `notFound()` in a streamed page would return status 200. `proxy.ts` checks the path against `content/routes.ts` and returns a true 404, so search engines never index missing pages.
+**JWT sessions with a database adapter.** Users and OAuth accounts are stored in Postgres, but the session is a signed cookie, so pages don't hit the database just to know who you are.
 
-**Route map as the core UI.** The course really is a sequence, so the main visual is a transit line: one coloured line per phase, one stop per week. It doubles as navigation and as the progress display, so there is one mental model across the home page, dashboard and lesson pages.
+**Admins by allowlist.** No role column to tamper with or forget to migrate. Changing reviewers is an env change.
 
-**Self-hosted fonts.** Bricolage Grotesque (headings) and Atkinson Hyperlegible (body, built for readability) ship as local woff2 files through `next/font/local`: no third-party request and no layout shift.
+**Content as TypeScript, not a CMS.** For one author, typed files give autocomplete, review in pull requests and zero runtime cost. Tests enforce 24 weeks, 5 questions per quiz, valid answers and unique slugs.
 
-**Validation at the edge of the system.** Project submissions are parsed with Zod (GitHub repo URL, https live URL). The same schema can run on a server later.
+**Real 404s.** With Partial Prerendering, `notFound()` in a streamed page would return 200. `proxy.ts` checks the path against `content/routes.ts` and returns a true 404.
 
-## Moving to accounts (next step)
+**Route map as the core UI.** The course is a sequence, so the main visual is a transit line: one coloured line per phase, one stop per week. Stops fill when you pass the week's quiz.
 
-```mermaid
-flowchart LR
-  UI[Same components] --> S[store.ts]
-  S -->|signed out| L[(localStorage)]
-  S -->|signed in| SA[Server Actions]
-  SA --> DB[(Postgres<br/>users, lesson_progress, submissions)]
-```
+**Self-hosted fonts.** Bricolage Grotesque and Atkinson Hyperlegible via `next/font/local`: no third-party request (CSP stays `font-src 'self'`) and no layout shift.
 
-1. Add Auth.js and a Postgres database (Neon or Turso).
-2. Tables: `users`, `lesson_progress(user_id, lesson_id, completed_at)`, `project_progress(user_id, project_slug, checked, repo_url, live_url, submitted_at)`.
-3. Server Actions reuse `toggleLesson`, `toggleRequirement` and `submitProject` from `model.ts`, check the session, and write rows.
-4. On first sign-in, import the browser progress once.
+## Security
 
-The UI does not change: only `store.ts` gains a second adapter.
-
-## Testing
-
-- **Content tests:** weeks 1 to 24 in order, lessons inside their phase's range, unique slugs, phase-project links, https resources.
-- **Progress tests:** parsing corrupted data, toggles, percent, next lesson, submission validation.
-- **CI:** lint, type-check (with generated route types), tests and a production build on every push.
+See [SECURITY.md](../SECURITY.md) for the threat model and where each control lives.
