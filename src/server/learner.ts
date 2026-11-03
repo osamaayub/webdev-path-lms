@@ -85,12 +85,37 @@ export async function getChecklist(userId: string, projectSlug: string) {
   return row?.checked ?? [];
 }
 
-export async function saveChecklist(userId: string, projectSlug: string, checked: number[]) {
+/**
+ * Ticks or unticks one requirement in a single SQL statement, so fast clicks
+ * (several requests in flight at once) can't overwrite each other.
+ */
+export async function setChecklistItem(userId: string, projectSlug: string, index: number, on: boolean) {
   const db = await getDb();
-  await db
-    .insert(projectChecklists)
-    .values({ userId, projectSlug, checked })
-    .onConflictDoUpdate({ target: [projectChecklists.userId, projectChecklists.projectSlug], set: { checked, updatedAt: new Date() } });
+  const col = projectChecklists.checked;
+  const now = new Date();
+  if (on) {
+    const [row] = await db
+      .insert(projectChecklists)
+      .values({ userId, projectSlug, checked: [index] })
+      .onConflictDoUpdate({
+        target: [projectChecklists.userId, projectChecklists.projectSlug],
+        set: {
+          checked: sql`(select coalesce(jsonb_agg(v order by v::int), '[]'::jsonb) from (select distinct v from jsonb_array_elements(${col} || jsonb_build_array(${index}::int)) as t(v)) s)`,
+          updatedAt: now,
+        },
+      })
+      .returning({ checked: col });
+    return row?.checked ?? [index];
+  }
+  const [row] = await db
+    .update(projectChecklists)
+    .set({
+      checked: sql`(select coalesce(jsonb_agg(v order by v::int), '[]'::jsonb) from jsonb_array_elements(${col}) as t(v) where v <> to_jsonb(${index}::int))`,
+      updatedAt: now,
+    })
+    .where(and(eq(projectChecklists.userId, userId), eq(projectChecklists.projectSlug, projectSlug)))
+    .returning({ checked: col });
+  return row?.checked ?? [];
 }
 
 export async function getSubmission(userId: string, projectSlug: string) {
