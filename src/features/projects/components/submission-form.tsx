@@ -9,9 +9,9 @@ import { refreshLearner, useLearner } from "@/features/progress/store";
 type Errors = Record<string, string[] | undefined>;
 
 const tone: Record<SubmissionView["status"], { bg: string; fg: string; body: string }> = {
-  submitted: { bg: "#FEF6DC", fg: "#7A5600", body: "Your project is waiting for a review. You'll see the grade and feedback here." },
-  changes_requested: { bg: "#FDEDE8", fg: "#9A2E10", body: "Read the feedback, make the changes, then submit again below." },
-  approved: { bg: "#E2F5EB", fg: "#0A6B3C", body: "Approved. Add it to your portfolio and share it on LinkedIn." },
+  submitted: { bg: "var(--warn-soft)", fg: "var(--warn)", body: "Your project is waiting for a review. You'll see the grade and feedback here." },
+  changes_requested: { bg: "var(--bad-soft)", fg: "var(--bad)", body: "Read the feedback, make the changes, then submit again below." },
+  approved: { bg: "var(--ok-soft)", fg: "var(--ok)", body: "Approved. Add it to your portfolio and share it on LinkedIn." },
 };
 
 export function SubmissionForm({ project, total }: { project: string; total: number }) {
@@ -51,21 +51,21 @@ export function SubmissionForm({ project, total }: { project: string; total: num
   return (
     <div className="space-y-6">
       {sub && (
-        <div className="rounded-[24px] p-7" style={{ background: tone[sub.status].bg }} role="status">
+        <div className="rounded-[20px] p-7" style={{ background: tone[sub.status].bg }} role="status">
           <p className="font-display text-2xl font-bold" style={{ color: tone[sub.status].fg }}>
             {statusLabel[sub.status]}
             {sub.grade !== null && sub.status !== "submitted" && <span className="text-ink">, grade {sub.grade}/100</span>}
           </p>
           <p className="mt-1 text-ink/80">{tone[sub.status].body}</p>
           {sub.feedback && (
-            <figure className="mt-4 rounded-2xl bg-white p-5">
+            <figure className="mt-4 rounded-2xl bg-card p-5">
               <figcaption className="text-[15px] text-muted">{sub.status === "submitted" ? "Feedback on your last version" : "Reviewer feedback"}</figcaption>
               <blockquote className="mt-1 whitespace-pre-line">{sub.feedback}</blockquote>
             </figure>
           )}
           <ul className="mt-4 flex flex-wrap gap-3">
-            <li><a className="inline-flex rounded-full bg-white px-5 py-2.5 font-semibold" href={sub.repoUrl} target="_blank" rel="noopener noreferrer">View the code</a></li>
-            <li><a className="inline-flex rounded-full bg-white px-5 py-2.5 font-semibold" href={sub.liveUrl} target="_blank" rel="noopener noreferrer">View the live site</a></li>
+            <li><a className="inline-flex rounded-full bg-card px-5 py-2.5 font-semibold" href={sub.repoUrl} target="_blank" rel="noopener noreferrer">View the code</a></li>
+            <li><a className="inline-flex rounded-full bg-card px-5 py-2.5 font-semibold" href={sub.liveUrl} target="_blank" rel="noopener noreferrer">View the live site</a></li>
             {sub.status === "submitted" && !editing && (
               <li><button type="button" onClick={() => setEditing(true)} className="inline-flex rounded-full px-5 py-2.5 font-semibold underline underline-offset-4">Update links</button></li>
             )}
@@ -75,16 +75,16 @@ export function SubmissionForm({ project, total }: { project: string; total: num
       )}
 
       {showForm && (
-        <form onSubmit={onSubmit} noValidate className="space-y-5 rounded-[24px] border border-rule bg-white p-7">
+        <form onSubmit={onSubmit} noValidate className="space-y-5 rounded-[20px] border border-rule bg-card p-7">
           <Field name="repoUrl" label="GitHub repository" placeholder="https://github.com/you/project" defaultValue={sub?.repoUrl} errors={errors.repoUrl} />
           <Field name="liveUrl" label="Live site" placeholder="https://your-project.vercel.app" defaultValue={sub?.liveUrl} errors={errors.liveUrl} />
           <div>
             <label htmlFor="field-notes" className="block font-semibold">Notes for the reviewer <span className="font-normal text-muted">(optional)</span></label>
-            <textarea id="field-notes" name="notes" rows={3} maxLength={1000} defaultValue={sub?.notes ?? ""} className="mt-2 w-full rounded-xl border-2 border-rule bg-paper px-4 py-3 outline-none focus:border-ink focus:bg-white" />
+            <textarea id="field-notes" name="notes" rows={3} maxLength={1000} defaultValue={sub?.notes ?? ""} className="mt-2 w-full rounded-xl border-2 border-rule bg-card-2 px-4 py-3 outline-none focus:border-ink focus:bg-card" />
           </div>
-          {message && <p role="alert" className="rounded-xl bg-[#FDEDE8] px-4 py-3 text-[#9A2E10]">{message}</p>}
+          {message && <p role="alert" className="rounded-xl bg-bad-soft px-4 py-3 text-bad">{message}</p>}
           <div className="flex flex-wrap items-center gap-4">
-            <button type="submit" disabled={remaining > 0 || pending || status === "loading"} className="rounded-full bg-ink px-6 py-3 font-semibold text-white hover:bg-[#22325a] disabled:cursor-not-allowed disabled:bg-ink/30">
+            <button type="submit" disabled={remaining > 0 || pending || status === "loading"} className="btn-primary">
               {pending ? "Submitting..." : sub ? "Submit again for review" : "Submit for review"}
             </button>
             {remaining > 0 && <p className="text-[15px] text-muted">Tick the {remaining} remaining requirement{remaining === 1 ? "" : "s"} to submit.</p>}
@@ -111,9 +111,9 @@ function Field({ name, label, placeholder, defaultValue, errors }: { name: strin
         defaultValue={defaultValue}
         aria-invalid={errors ? true : undefined}
         aria-describedby={errors ? `${id}-error` : undefined}
-        className="mt-2 w-full rounded-xl border-2 border-rule bg-paper px-4 py-3 outline-none focus:border-ink focus:bg-white aria-[invalid=true]:border-[#C2361B]"
+        className="mt-2 w-full rounded-xl border-2 border-rule bg-card-2 px-4 py-3 outline-none focus:border-ink focus:bg-card aria-[invalid=true]:border-bad"
       />
-      {errors && <p id={`${id}-error`} className="mt-1.5 text-[15px] text-[#C2361B]">{errors[0]}</p>}
+      {errors && <p id={`${id}-error`} className="mt-1.5 text-[15px] text-bad">{errors[0]}</p>}
     </div>
   );
 }

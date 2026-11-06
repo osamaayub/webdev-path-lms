@@ -25,14 +25,14 @@ export function RequirementChecklist({ project, items, color }: { project: strin
 
   return (
     <>
-      <ul className="divide-y divide-rule overflow-hidden rounded-2xl border border-rule bg-white">
+      <ul className="divide-y divide-rule overflow-hidden rounded-2xl border border-rule bg-card">
         {items.map((item, i) => {
           const on = checked.includes(i);
           return (
             <li key={item}>
-              <label className={`flex items-start gap-4 px-5 py-4 ${signedIn ? "cursor-pointer hover:bg-paper" : ""}`}>
+              <label className={`flex items-start gap-4 px-5 py-4 ${signedIn ? "cursor-pointer hover:bg-card-2" : ""}`}>
                 <input type="checkbox" checked={on} disabled={!signedIn} onChange={() => toggle(i)} className="peer sr-only" />
-                <span aria-hidden className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md border-2 border-ink peer-focus-visible:outline peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-disabled:opacity-40" style={{ background: on ? color : "#fff", borderColor: on ? color : undefined }}>
+                <span aria-hidden className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md border-2 border-ink/80 peer-focus-visible:outline peer-focus-visible:outline-3 peer-focus-visible:outline-offset-2 peer-disabled:opacity-40" style={{ background: on ? color : "#fff", borderColor: on ? color : undefined }}>
                   {on && <svg width="14" height="14" viewBox="0 0 12 12"><path d="M2 6.5l2.5 2.5L10 3.5" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" /></svg>}
                 </span>
                 <span className={on ? "text-muted line-through decoration-1" : ""}>{item}</span>
@@ -41,7 +41,7 @@ export function RequirementChecklist({ project, items, color }: { project: strin
           );
         })}
       </ul>
-      {error && <p role="alert" className="mt-3 text-[15px] text-[#C2361B]">{error}</p>}
+      {error && <p role="alert" className="mt-3 text-[15px] text-bad">{error}</p>}
     </>
   );
 }
