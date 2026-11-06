@@ -8,19 +8,21 @@ import { videos } from "@/content/videos";
 
 export const metadata: Metadata = {
   title: "Video lessons",
-  description: "Free video lessons for the WebDev Path course: Next.js 16, React hooks, Node.js APIs, the OpenAI API and AI chatbots.",
+  description: "A video for every week of the WebDev Path course: HTML, CSS, JavaScript, React, Next.js, Node.js, databases and AI.",
   alternates: { canonical: "/videos" },
 };
+
+const weekOf = (v: { lessonId?: string }) => (v.lessonId ? (allLessons.find((l) => lessonId(l) === v.lessonId)?.week ?? 99) : 0);
 
 export default function VideosPage() {
   return (
     <div className="mx-auto max-w-6xl">
       <PageBar trail={[{ href: "/learn", label: "My course" }, { label: "Video lessons" }]} badge={<Badge>{videos.length} videos</Badge>} />
-      <HeaderCard icon="video" title="Video lessons" subtitle="Short, practical videos that go with the weekly lessons. Each one opens inside its lesson, next to the quiz.">
+      <HeaderCard icon="video" title="Video lessons" subtitle="Every week has a video. Lessons from WebDev Path come first, and free lessons from great teachers fill the rest. Each one opens inside its lesson, next to the quiz.">
         <a href={site.youtube} target="_blank" rel="noopener noreferrer" className="btn-secondary mt-4 !py-2 text-[15px]">Subscribe on YouTube <Icon name="external" size={14} /></a>
       </HeaderCard>
       <ul className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {videos.map((v) => {
+        {[...videos].sort((a, b) => weekOf(a) - weekOf(b)).map((v) => {
           const lesson = v.lessonId ? allLessons.find((l) => lessonId(l) === v.lessonId) : undefined;
           const href = lesson ? `/learn/${lesson.phase.slug}/${lesson.slug}` : `https://www.youtube.com/watch?v=${v.id}`;
           const external = !lesson;
@@ -35,6 +37,7 @@ export default function VideosPage() {
                 <span className="block p-4">
                   <span className="block font-semibold leading-snug">{v.title}</span>
                   <span className="mt-1 block text-[14px] text-muted">{lesson ? `Week ${lesson.week}: ${lesson.title}` : "Course intro"}</span>
+                  <span className="mt-1 block text-[13px] text-muted">{v.creator ? `By ${v.creator}` : "WebDev Path"}</span>
                 </span>
               </Link>
             </li>
