@@ -26,3 +26,13 @@ Please report privately through a [GitHub security advisory](https://github.com/
 
 - The CSP allows `'unsafe-inline'` scripts because pages are statically prerendered (a nonce would force per-request rendering). There are no third-party scripts.
 - Rate limits are stored in Postgres per user, not per IP. Anonymous users cannot call any write action.
+
+## Email and password accounts
+
+- Passwords are hashed with scrypt (N=16384, r=8, p=1, 16-byte random salt) from Node's built-in crypto. The plain password is never stored or logged, and the hash never leaves the server.
+- Passwords need 8 to 72 characters with at least one letter and one number.
+- Sign-in failures always say "Wrong email or password", and a missing account is checked against a dummy hash, so responses don't reveal which emails exist.
+- Rate limits are stored in Postgres (`auth_attempt`), so they hold across serverless instances: 8 failed sign-ins per email per 15 minutes, 5 sign-ups per network address per hour.
+- Emails are not verified yet (no email provider). For that reason a password session can never be an admin, and admin emails in `ADMIN_EMAILS` cannot be registered with a password.
+- An email that already has an account (for example from Google) cannot be claimed by a new password account.
+- No password reset yet: it needs an email provider. Learners who forget a password can contact the maintainer.

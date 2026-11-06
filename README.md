@@ -34,7 +34,7 @@ Most beginners don't fail from lack of material. They fail because there's too m
 ## Features
 
 **For learners**
-- **Sign in with GitHub or Google.** No passwords. Progress follows you to any device.
+- **Sign up and sign in** with email and password, Google or GitHub. Passwords are hashed with scrypt and sign-ins are rate limited. Progress follows you to any device.
 - **Route map:** the whole course drawn as a transit line. Each week is a stop that fills with the line's colour when you pass it.
 - **24 weekly modules:** objectives, then three steps (learn, practice, build) and hand-picked free resources.
 - **120 quiz questions:** a 5-question quiz closes every week. Score 4 of 5 to complete it. Wrong answers come back with an explanation; best score and attempts are kept.
