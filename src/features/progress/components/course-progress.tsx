@@ -29,13 +29,13 @@ export function CourseProgress({ lines, title, intro }: { lines: RouteLine[]; ti
         </div>
       </section>
 
-      <a href={intro.href} target="_blank" rel="noopener noreferrer" className="flex flex-wrap items-center gap-4 rounded-[20px] px-5 py-4 text-white shadow-[0_18px_40px_-20px_var(--brand-2)] sm:px-6" style={{ background: "linear-gradient(100deg, var(--brand-2), var(--brand) 60%, var(--brand-2))" }}>
+      <a href={intro.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 rounded-[20px] px-4 py-4 sm:px-5 text-white shadow-[0_18px_40px_-20px_var(--brand-2)] sm:px-6" style={{ background: "linear-gradient(100deg, var(--brand-2), var(--brand) 60%, var(--brand-2))" }}>
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white/20"><Icon name="play" size={18} /></span>
         <span className="min-w-0 flex-1">
           <span className="block font-bold">New here? Watch the 4-minute course roadmap first.</span>
-          <span className="block text-[14px] text-white/80">{intro.title}</span>
+          <span className="hidden text-[14px] text-white/80 sm:block">{intro.title}</span>
         </span>
-        <span className="rounded-xl bg-white px-4 py-2 font-semibold text-[#1b2140]">Watch now</span>
+        <span className="hidden rounded-xl bg-white px-4 py-2 font-semibold text-[#1b2140] sm:inline">Watch now</span>
       </a>
 
       <SignInPrompt title="Sign in to track your progress" body="Pass each week's quiz to complete it. Your progress follows you to any device." />
@@ -71,8 +71,8 @@ export function CourseProgress({ lines, title, intro }: { lines: RouteLine[]; ti
                   <span className="min-w-0 flex-1">
                     <span className="block font-semibold">Module {l.number}: {l.title}</span>
                     <span className="mt-1.5 flex items-center gap-3">
-                      <span className="w-32 sm:w-48"><ProgressBar value={v} label={`${l.title} progress`} color={c.line} /></span>
-                      <span className="text-[13px] text-muted">{n} / {l.stops.length} lessons</span>
+                      <span className="min-w-0 flex-1 sm:w-48 sm:flex-none"><ProgressBar value={v} label={`${l.title} progress`} color={c.line} /></span>
+                      <span className="whitespace-nowrap text-[13px] text-muted">{n} / {l.stops.length} lessons</span>
                     </span>
                   </span>
                   <span className="btn-primary hidden !px-4 !py-2 text-[15px] sm:inline-flex">View module <Icon name="arrow" size={16} /></span>
