@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { Icon } from "./icons";
 
-type Props = { id: string; title: string; provider?: "youtube" | "bunny" };
+type Props = { id: string; title: string; provider?: "youtube" | "bunny"; credit?: React.ReactNode };
 
 const embedUrl = (id: string, provider: Props["provider"]) =>
   provider === "bunny"
@@ -15,7 +15,7 @@ const embedUrl = (id: string, provider: Props["provider"]) =>
  * learner presses play, so pages stay fast and set no third-party cookies until then.
  * Works with YouTube (privacy-enhanced) and Bunny Stream.
  */
-export function VideoPlayer({ id, title, provider = "youtube" }: Props) {
+export function VideoPlayer({ id, title, provider = "youtube", credit }: Props) {
   const [playing, setPlaying] = useState(false);
   // If the thumbnail can't load (blocked network, removed video), show the title instead of a broken image.
   const [thumbFailed, setThumbFailed] = useState(false);
@@ -55,8 +55,9 @@ export function VideoPlayer({ id, title, provider = "youtube" }: Props) {
           </button>
         )}
       </div>
-      <div className="mt-3 flex justify-end">
-        <button type="button" onClick={fullscreen} className="btn-primary !px-3.5 !py-2 text-[14px]">
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <p className="min-w-0 text-[13px] text-muted">{credit}</p>
+        <button type="button" onClick={fullscreen} className="btn-primary shrink-0 !px-3.5 !py-2 text-[14px]">
           <Icon name="expand" size={15} /> Fullscreen
         </button>
       </div>
