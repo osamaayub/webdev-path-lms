@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Badge, HeaderCard, PageBar } from "@/components/page-parts";
 import { colorFor } from "@/config/theme";
-import { getPhase, getProject, projects } from "@/content";
+import { getPhase, getProject, practiceFor, projects } from "@/content";
+import { BuildPlan, IdeaPicker, PracticeCard, ReferenceBuild, StarterKit } from "@/features/projects/components/project-guide";
 import { RequirementChecklist } from "@/features/projects/components/requirement-checklist";
 import { SubmissionForm } from "@/features/projects/components/submission-form";
 
@@ -26,6 +27,7 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
   if (!project) notFound();
   const phase = getPhase(project.phaseSlug);
   const c = colorFor(project.phaseSlug);
+  const warmups = practiceFor(project.phaseSlug);
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -52,6 +54,26 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
         </section>
 
         <section>
+          <h2 className="font-display text-2xl font-bold">Pick your version</h2>
+          <p className="mt-1 text-muted">Choose one theme, or your own idea. Same skills, but your portfolio won&apos;t look like everyone else&apos;s.</p>
+          <div className="mt-4"><IdeaPicker ideas={project.ideas} color={c.ink} /></div>
+        </section>
+
+        {warmups.length > 0 && (
+          <section>
+            <h2 className="font-display text-2xl font-bold">Warm up first</h2>
+            <p className="mt-1 text-muted">Two short builds that practise the skills this project needs. About {Math.round(warmups.reduce((n, b) => n + b.minutes, 0) / 60 * 2) / 2} hours in total.</p>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">{warmups.map((b) => <PracticeCard key={b.slug} build={b} color={c.ink} />)}</div>
+          </section>
+        )}
+
+        <section>
+          <h2 className="font-display text-2xl font-bold">Build plan</h2>
+          <p className="mt-1 text-muted">{project.milestones.length} steps in order. Each one ends with a clear check, so you always know when to move on.</p>
+          <div className="mt-5"><BuildPlan milestones={project.milestones} color={c.line} /></div>
+        </section>
+
+        <section>
           <h2 className="font-display text-2xl font-bold">Requirements</h2>
           <p className="mt-1 text-muted">Tick each one when it&apos;s done. Saved to your account.</p>
           <div className="mt-4"><RequirementChecklist project={project.slug} items={project.requirements} color={c.line} /></div>
@@ -62,6 +84,19 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
           <p className="mt-1 text-muted">Optional. One of these makes your project stand out from the tutorial version.</p>
           <ul className="mt-4 list-disc space-y-1.5 pl-5 text-ink/85">{project.stretch.map((s) => <li key={s}>{s}</li>)}</ul>
         </section>
+
+        <section>
+          <h2 className="font-display text-2xl font-bold">Starter kit</h2>
+          <p className="mt-1 text-muted">Free APIs, tools and docs for this project.</p>
+          <div className="mt-4"><StarterKit kit={project.kit} /></div>
+        </section>
+
+        {project.reference && (
+          <section>
+            <h2 className="font-display text-2xl font-bold">Compare with a finished version</h2>
+            <div className="mt-4"><ReferenceBuild reference={project.reference} /></div>
+          </section>
+        )}
 
         <section>
           <h2 className="font-display text-2xl font-bold">Submit</h2>
