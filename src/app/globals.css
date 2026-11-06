@@ -78,60 +78,63 @@ body {
   color: var(--ink);
 }
 
-/* Primary action: a blue to violet gradient pill, used for the one main action in a view. */
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border-radius: 0.75rem;
-  padding: 0.7rem 1.25rem;
-  font-weight: 600;
-  color: #fff;
-  background: linear-gradient(90deg, var(--brand), var(--brand-2));
-  box-shadow: 0 8px 24px -10px var(--brand);
-  transition: filter 0.15s, transform 0.15s;
-}
-.btn-primary:hover {
-  filter: brightness(1.08);
-}
-.btn-primary:disabled,
-.btn-primary[aria-disabled="true"] {
-  opacity: 0.4;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border-radius: 0.75rem;
-  padding: 0.7rem 1.25rem;
-  font-weight: 600;
-  color: var(--ink);
-  background: var(--card-2);
-  border: 1px solid var(--rule);
-  transition: border-color 0.15s;
-}
-.btn-secondary:hover {
-  border-color: color-mix(in oklab, var(--ink) 30%, var(--rule));
-}
+/* Component classes live in the components layer, so Tailwind utilities (hidden, sm:*, px-*) can override them. */
+@layer components {
+  /* Primary action: a blue to violet gradient pill, used for the one main action in a view. */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    padding: 0.7rem 1.25rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(90deg, var(--brand), var(--brand-2));
+    box-shadow: 0 8px 24px -10px var(--brand);
+    transition: filter 0.15s, transform 0.15s;
+  }
+  .btn-primary:hover {
+    filter: brightness(1.08);
+  }
+  .btn-primary:disabled,
+  .btn-primary[aria-disabled="true"] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.75rem;
+    padding: 0.7rem 1.25rem;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--card-2);
+    border: 1px solid var(--rule);
+    transition: border-color 0.15s;
+  }
+  .btn-secondary:hover {
+    border-color: color-mix(in oklab, var(--ink) 30%, var(--rule));
+  }
 
-/* Panels share one look: rounded, bordered, slightly raised. */
-.panel {
-  border-radius: 1.25rem;
-  border: 1px solid var(--rule);
-  background: var(--card);
-  box-shadow: var(--shadow);
-}
-.icon-tile {
-  display: grid;
-  place-items: center;
-  border-radius: 0.9rem;
-  color: #fff;
-  background: linear-gradient(135deg, var(--brand), var(--brand-2));
-  box-shadow: 0 10px 24px -12px var(--brand);
+  /* Panels share one look: rounded, bordered, slightly raised. */
+  .panel {
+    border-radius: 1.25rem;
+    border: 1px solid var(--rule);
+    background: var(--card);
+    box-shadow: var(--shadow);
+  }
+  .icon-tile {
+    display: grid;
+    place-items: center;
+    border-radius: 0.9rem;
+    color: #fff;
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    box-shadow: 0 10px 24px -12px var(--brand);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
