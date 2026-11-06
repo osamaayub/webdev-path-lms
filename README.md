@@ -41,7 +41,7 @@ Most beginners don't fail from lack of material. They fail because there's too m
 - **6 graded assignments:** tick the requirements, submit your GitHub repo and live link, and get a grade out of 100 with written feedback. Resubmit after "changes requested".
 - **Learning portal layout:** a top bar, a sidebar with Learn, Build & Showcase and Account groups, a breadcrumb strip on every page, and module rows with progress and a "View module" button.
 - **Lesson player:** video on the left with Back and Next lesson, a "Course modules" panel on the right with a check next to every passed week.
-- **Video lessons** from the [@osamaayubdev](https://www.youtube.com/@osamaayubdev) channel, loaded from youtube-nocookie only when you press play.
+- **A video for every week:** lessons from the [@osamaayubdev](https://www.youtube.com/@osamaayubdev) channel, plus credited free lessons from Academind, Kevin Powell, Fireship, Web Dev Simplified and Coder Coder for the rest. Loaded from youtube-nocookie only when you press play, with a Fullscreen button. Bunny Stream is supported for self-hosted recordings.
 - **Quizzes page** with your best score per week, **My submissions** with grades and feedback, and a printable **certificate** once all 24 weeks and all 6 projects are done.
 - **Dark and light theme**, dark by default, with no flash on load.
 - **My course:** resume button, overall and per-module progress.
