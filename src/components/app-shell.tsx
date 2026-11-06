@@ -52,6 +52,11 @@ export function AppShell({ children, footer }: { children: React.ReactNode; foot
   const open = openOn === path;
   const setOpen = (fn: (o: boolean) => boolean) => setOpenOn(fn(open) ? path : null);
 
+  // Sign-in and sign-up get a focused, full-screen layout with no sidebar or footer.
+  if (path === "/sign-in" || path === "/sign-up") {
+    return <main id="main">{children}</main>;
+  }
+
   if (path === "/") {
     return (
       <>
