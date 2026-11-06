@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Badge, HeaderCard, PageBar } from "@/components/page-parts";
 import { colorFor } from "@/config/theme";
 import { getPhase, getProject, projects } from "@/content";
 import { RequirementChecklist } from "@/features/projects/components/requirement-checklist";
@@ -27,32 +28,25 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
   const c = colorFor(project.phaseSlug);
 
   return (
-    <div>
-      <header className="border-b border-rule" style={{ background: c.soft }}>
-        <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-          <nav aria-label="Breadcrumb" className="text-[15px] text-ink/70">
-            <Link href="/projects" className="hover:underline">Projects</Link> <span aria-hidden>/</span> Project {project.number}
-          </nav>
-          <p className="mt-6" style={{ color: c.ink }}>{project.level}, about {project.hours} hours</p>
-          <h1 className="mt-1 font-display text-5xl font-extrabold leading-[1.05] tracking-tight">{project.title}</h1>
-          <p className="mt-4 text-lg text-ink/80">{project.brief}</p>
-          <ul className="mt-6 flex flex-wrap gap-2">
-            {project.stack.map((s) => <li key={s} className="rounded-full bg-white px-3 py-1 text-[15px]">{s}</li>)}
-          </ul>
-          {phase && (
-            <p className="mt-6 text-[15px] text-ink/75">
-              The final project of <Link href={`/learn/${phase.slug}`} className="font-semibold underline underline-offset-4">line {phase.number}, {phase.title}</Link>. It proves: {project.proves.toLowerCase()}.
-            </p>
-          )}
-        </div>
-      </header>
+    <div className="mx-auto max-w-5xl">
+      <PageBar trail={[{ href: "/projects", label: "Projects" }, { label: `Project ${project.number}` }]} badge={<Badge>{project.level} · about {project.hours} h</Badge>} />
+      <HeaderCard icon="kanban" title={project.title} subtitle={project.brief}>
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {project.stack.map((s) => <li key={s} className="rounded-lg border border-rule bg-card-2 px-3 py-1 text-[14px]">{s}</li>)}
+        </ul>
+        {phase && (
+          <p className="mt-4 text-[15px] text-muted">
+            The project for <Link href={`/learn/${phase.slug}`} className="font-semibold text-brand hover:underline">module {phase.number}, {phase.title}</Link>. It proves: {project.proves.toLowerCase()}.
+          </p>
+        )}
+      </HeaderCard>
 
-      <div className="mx-auto max-w-3xl space-y-14 px-4 py-14 sm:px-6">
+      <div className="panel mt-6 space-y-12 p-5 sm:p-8">
         <section>
           <h2 className="font-display text-2xl font-bold">Who it&apos;s for</h2>
           <ul className="mt-4 space-y-3">
             {project.userStories.map((s) => (
-              <li key={s} className="rounded-2xl border-l-4 bg-white px-5 py-3 text-ink/85" style={{ borderColor: c.line }}>{s}</li>
+              <li key={s} className="rounded-2xl border-l-4 bg-card px-5 py-3 text-ink/85" style={{ borderColor: c.line }}>{s}</li>
             ))}
           </ul>
         </section>

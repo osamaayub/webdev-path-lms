@@ -52,8 +52,8 @@ export function RouteMap({ lines, animate = false }: { lines: RouteLine[]; anima
               return (
                 <Link key={s.id} href={s.href} aria-label={`Week ${s.week}: ${s.title}${isDone ? " (done)" : ""}`}>
                   <title>{`Week ${s.week}: ${s.title}`}</title>
-                  <circle cx={xs[k]} cy={y} r="13" fill={isDone ? c.line : "#fff"} stroke="#14213D" strokeWidth="2.5" />
-                  <text x={xs[k]} y={y + 4} textAnchor="middle" fontSize="11.5" fontWeight="700" fill={isDone ? "#fff" : "#14213D"}>
+                  <circle cx={xs[k]} cy={y} r="13" fill={isDone ? c.line : "var(--card)"} stroke="var(--ink)" strokeWidth="2.5" />
+                  <text x={xs[k]} y={y + 4} textAnchor="middle" fontSize="11.5" fontWeight="700" fill={isDone ? "#fff" : "var(--ink)"}>
                     {s.week}
                   </text>
                 </Link>

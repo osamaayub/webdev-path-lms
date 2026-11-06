@@ -79,7 +79,7 @@ export function LessonQuiz({ lessonId, questions, passPercent, color, nextHref, 
                       <label
                         key={oi}
                         className={`flex cursor-pointer items-start gap-3 rounded-xl border-2 px-4 py-3 transition-colors ${
-                          isAnswer ? "border-[#0F9D58] bg-[#E2F5EB]" : wrongPick ? "border-[#C2361B] bg-[#FDEDE8]" : chosen ? "border-ink bg-white" : "border-rule bg-white hover:border-ink/40"
+                          isAnswer ? "border-ok bg-ok-soft" : wrongPick ? "border-bad bg-bad-soft" : chosen ? "border-ink bg-card" : "border-rule bg-card hover:border-ink/40"
                         }`}
                       >
                         <input
@@ -88,7 +88,7 @@ export function LessonQuiz({ lessonId, questions, passPercent, color, nextHref, 
                           value={oi}
                           checked={chosen}
                           onChange={() => setAnswers((a) => a.map((v, i) => (i === qi ? oi : v)))}
-                          className="mt-1.5 h-4 w-4 shrink-0 accent-[#14213D]"
+                          className="mt-1.5 h-4 w-4 shrink-0 accent-[var(--brand)]"
                         />
                         <span>
                           {opt}
@@ -99,7 +99,7 @@ export function LessonQuiz({ lessonId, questions, passPercent, color, nextHref, 
                     );
                   })}
                 </div>
-                {graded && <p className={`mt-2 text-[15px] ${graded.correct ? "text-[#0A6B3C]" : "text-[#9A2E10]"}`}>{graded.correct ? "Correct. " : "Not quite. "}{graded.explain}</p>}
+                {graded && <p className={`mt-2 text-[15px] ${graded.correct ? "text-ok" : "text-bad"}`}>{graded.correct ? "Correct. " : "Not quite. "}{graded.explain}</p>}
               </fieldset>
             </li>
           );
@@ -107,25 +107,25 @@ export function LessonQuiz({ lessonId, questions, passPercent, color, nextHref, 
       </ol>
 
       <div id="quiz-result" tabIndex={-1} aria-live="polite" className="mt-8 outline-none">
-        {error && <p role="alert" className="mb-4 rounded-xl bg-[#FDEDE8] px-4 py-3 text-[#9A2E10]">{error}</p>}
+        {error && <p role="alert" className="mb-4 rounded-xl bg-bad-soft px-4 py-3 text-bad">{error}</p>}
         {result ? (
-          <div className="rounded-[24px] p-6" style={{ background: result.passed ? "#E2F5EB" : "#FEF6DC" }}>
+          <div className="rounded-[20px] p-6" style={{ background: result.passed ? "var(--ok-soft)" : "var(--warn-soft)" }}>
             <p className="font-display text-2xl font-bold">
               {result.score} of {result.total}. {result.passed ? "Week complete." : "Not there yet."}
             </p>
             <p className="mt-1 text-ink/80">{result.passed ? "Nice work. Your progress is saved." : `You need ${needed} to pass. Read the explanations above, then try again.`}</p>
             <div className="mt-5 flex flex-wrap gap-3">
               {result.passed && nextHref && (
-                <Link href={nextHref} className="rounded-full bg-ink px-6 py-3 font-semibold text-white hover:bg-[#22325a]">Go to {nextLabel}</Link>
+                <Link href={nextHref} className="btn-primary">Go to {nextLabel}</Link>
               )}
-              <button type="button" onClick={retry} className="rounded-full border border-ink/20 bg-white px-6 py-3 font-semibold hover:border-ink/40">
+              <button type="button" onClick={retry} className="rounded-full border border-ink/20 bg-card px-6 py-3 font-semibold hover:border-ink/40">
                 {result.passed ? "Retake quiz" : "Try again"}
               </button>
             </div>
           </div>
         ) : (
           <div className="flex flex-wrap items-center gap-4">
-            <button type="submit" disabled={pending || answered < questions.length || status === "loading"} className="rounded-full px-6 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40" style={{ background: "#14213D" }}>
+            <button type="submit" disabled={pending || answered < questions.length || status === "loading"} className="btn-primary">
               {pending ? "Checking..." : "Check answers"}
             </button>
             <span className="text-[15px] text-muted">{answered} of {questions.length} answered</span>

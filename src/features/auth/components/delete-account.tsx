@@ -12,17 +12,17 @@ export function DeleteAccount() {
 
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} className="mt-5 inline-flex rounded-full bg-white px-6 py-3 font-semibold text-[#9A2E10] ring-2 ring-[#E4572E]">
+      <button type="button" onClick={() => setOpen(true)} className="mt-5 inline-flex rounded-full bg-card px-6 py-3 font-semibold text-bad ring-2 ring-bad">
         Delete my account
       </button>
     );
   }
   return (
-    <form action={deleteAccountAction} className="mt-5 rounded-2xl bg-white p-5">
+    <form action={async (f) => { if (await deleteAccountAction(f)) window.location.assign("/?deleted=1"); }} className="mt-5 rounded-2xl bg-card p-5">
       <label htmlFor="confirm-delete" className="block font-semibold">Type DELETE to remove your account, progress, quiz attempts and submissions. This can&apos;t be undone.</label>
-      <input id="confirm-delete" name="confirm" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" className="mt-3 w-full rounded-xl border-2 border-rule bg-paper px-4 py-3" />
+      <input id="confirm-delete" name="confirm" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" className="mt-3 w-full rounded-xl border-2 border-rule bg-card-2 px-4 py-3" />
       <div className="mt-4 flex flex-wrap gap-3">
-        <button type="submit" disabled={typed !== "DELETE"} className="rounded-full bg-[#C2361B] px-6 py-3 font-semibold text-white disabled:opacity-40">Delete everything</button>
+        <button type="submit" disabled={typed !== "DELETE"} className="rounded-full bg-bad px-6 py-3 font-semibold text-white disabled:opacity-40">Delete everything</button>
         <button type="button" onClick={() => setOpen(false)} className="rounded-full px-6 py-3 font-semibold underline underline-offset-4">Cancel</button>
       </div>
     </form>

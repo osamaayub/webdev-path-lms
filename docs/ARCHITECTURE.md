@@ -91,8 +91,14 @@ erDiagram
 
 **Route map as the core UI.** The course is a sequence, so the main visual is a transit line: one coloured line per phase, one stop per week. Stops fill when you pass the week's quiz.
 
-**Self-hosted fonts.** Bricolage Grotesque and Atkinson Hyperlegible via `next/font/local`: no third-party request (CSP stays `font-src 'self'`) and no layout shift.
+**Self-hosted font.** Geist (variable) via `next/font/local`: no third-party request (CSP stays `font-src 'self'`) and no layout shift.
 
 ## Security
 
 See [SECURITY.md](../SECURITY.md) for the threat model and where each control lives.
+
+**App shell and theme.** `AppShell` (client) gives every learning page a top bar, a sidebar with collapsible groups and a mobile drawer; the home page keeps only the top bar. The theme lives in CSS variables on `:root[data-theme]`. A tiny inline script in `<head>` sets `data-theme` from localStorage before first paint, so there is no flash. The theme toggle reads that attribute with `useSyncExternalStore`.
+
+**Video lessons.** `src/content/videos.ts` maps YouTube videos to lessons. The player shows the thumbnail first and only loads the youtube-nocookie iframe when the learner presses play. The CSP allows `i.ytimg.com` images and `youtube-nocookie.com` frames, nothing else from YouTube.
+
+**Sign out and account deletion** clear the session in a server action, then the client does a full page load to `/`, so no signed-in UI or cached state survives.

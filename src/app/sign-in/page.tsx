@@ -22,7 +22,7 @@ export default function SignInPage({ searchParams }: PageProps<"/sign-in">) {
     <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
       <h1 className="font-display text-4xl font-extrabold tracking-tight">Sign in</h1>
       <p className="mt-3 text-ink/80">Save your progress, take the weekly quizzes and get your projects reviewed. Free, and we only read your name, email and avatar.</p>
-      <Suspense fallback={<div className="mt-8 h-32 rounded-[24px] bg-white" />}>
+      <Suspense fallback={<div className="mt-8 h-32 rounded-[20px] bg-card" />}>
         <SignInOptions searchParams={searchParams} />
       </Suspense>
     </div>
@@ -35,7 +35,7 @@ async function SignInOptions({ searchParams }: Pick<PageProps<"/sign-in">, "sear
   if (await getViewer()) redirect(returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/learn");
 
   if (!authConfigured()) {
-    return <p className="mt-8 rounded-[24px] bg-[#FEF6DC] p-6 text-[#7A5600]">Accounts are being set up. You can read every lesson in the meantime.</p>;
+    return <p className="mt-8 rounded-[20px] bg-warn-soft p-6 text-warn">Accounts are being set up. You can read every lesson in the meantime.</p>;
   }
 
   const p = enabledProviders();
@@ -43,17 +43,17 @@ async function SignInOptions({ searchParams }: Pick<PageProps<"/sign-in">, "sear
 
   return (
     <div className="mt-8 space-y-3">
-      {error && <p role="alert" className="rounded-xl bg-[#FDEDE8] px-4 py-3 text-[#9A2E10]">{error}</p>}
+      {error && <p role="alert" className="rounded-xl bg-bad-soft px-4 py-3 text-bad">{error}</p>}
       {p.github && <ProviderButton provider="github" label="Continue with GitHub" returnTo={returnTo} />}
       {p.google && <ProviderButton provider="google" label="Continue with Google" returnTo={returnTo} />}
       {p.dev && (
-        <form action={signInWith} className="space-y-3 rounded-[24px] border-2 border-dashed border-rule p-5">
+        <form action={signInWith} className="space-y-3 rounded-[20px] border-2 border-dashed border-rule p-5">
           <p className="text-[15px] text-muted">Local development login (never available in production)</p>
           <input type="hidden" name="provider" value="dev" />
           <input type="hidden" name="returnTo" value={returnTo} />
           <label htmlFor="dev-email" className="block font-semibold">Email</label>
-          <input id="dev-email" name="email" type="email" required className="w-full rounded-xl border-2 border-rule bg-paper px-4 py-3" />
-          <button type="submit" className="w-full rounded-full bg-ink px-6 py-3 font-semibold text-white">Dev sign in</button>
+          <input id="dev-email" name="email" type="email" required className="w-full rounded-xl border-2 border-rule bg-card-2 px-4 py-3" />
+          <button type="submit" className="btn-primary w-full">Dev sign in</button>
         </form>
       )}
       <p className="pt-4 text-[15px] text-muted">By signing in you agree that we store your quiz results and project submissions so you and your reviewer can see them.</p>
@@ -66,7 +66,7 @@ function ProviderButton({ provider, label, returnTo }: { provider: "github" | "g
     <form action={signInWith}>
       <input type="hidden" name="provider" value={provider} />
       <input type="hidden" name="returnTo" value={returnTo} />
-      <button type="submit" className="flex w-full items-center justify-center gap-3 rounded-full border-2 border-ink bg-white px-6 py-3.5 font-semibold hover:bg-paper">
+      <button type="submit" className="flex w-full items-center justify-center gap-3 rounded-full border-2 border-ink/80 bg-card px-6 py-3.5 font-semibold hover:bg-card-2">
         {provider === "github" ? <GitHubIcon /> : <GoogleIcon />}
         {label}
       </button>

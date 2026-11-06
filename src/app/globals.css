@@ -1,17 +1,137 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens. Dark is the default (a deep navy app shell); light is one toggle away.
+ * Utility names stay semantic: ink = main text, paper = page, card = panel, rule = border.
+ */
+:root,
+:root[data-theme="dark"] {
+  --paper: oklch(0.14 0.02 260);
+  --card: oklch(0.18 0.025 262);
+  --card-2: oklch(0.22 0.03 262);
+  --sidebar: oklch(0.155 0.022 260);
+  --ink: oklch(0.96 0.01 255);
+  --muted: oklch(0.72 0.02 255);
+  --rule: oklch(0.29 0.03 262);
+  --brand: oklch(0.65 0.19 262);
+  --brand-2: oklch(0.6 0.22 290);
+  --brand-soft: oklch(0.3 0.08 265 / 0.55);
+  --ok: oklch(0.78 0.16 155);
+  --ok-soft: oklch(0.32 0.07 155 / 0.45);
+  --warn: oklch(0.84 0.14 85);
+  --warn-soft: oklch(0.34 0.07 85 / 0.45);
+  --bad: oklch(0.72 0.17 30);
+  --bad-soft: oklch(0.33 0.08 30 / 0.45);
+  --shadow: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 20px 40px -24px oklch(0 0 0 / 0.6);
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --paper: oklch(0.975 0.006 255);
+  --card: oklch(1 0 0);
+  --card-2: oklch(0.965 0.01 255);
+  --sidebar: oklch(0.99 0.004 255);
+  --ink: oklch(0.24 0.04 262);
+  --muted: oklch(0.5 0.03 258);
+  --rule: oklch(0.9 0.014 258);
+  --brand: oklch(0.55 0.2 262);
+  --brand-2: oklch(0.52 0.22 290);
+  --brand-soft: oklch(0.93 0.04 265);
+  --ok: oklch(0.48 0.13 155);
+  --ok-soft: oklch(0.95 0.04 155);
+  --warn: oklch(0.52 0.12 75);
+  --warn-soft: oklch(0.96 0.05 90);
+  --bad: oklch(0.52 0.18 30);
+  --bad-soft: oklch(0.95 0.03 30);
+  --shadow: 0 1px 2px oklch(0.3 0.05 260 / 0.06), 0 20px 40px -28px oklch(0.3 0.05 260 / 0.25);
+  color-scheme: light;
+}
+
 @theme inline {
-  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
-  --color-ink: #14213d;
-  --color-paper: #f6f7fb;
-  --color-muted: #5b6475;
-  --color-rule: #dfe3ec;
-  --color-brand: #3a57e8;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
+  --color-sidebar: var(--sidebar);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-brand: var(--brand);
+  --color-brand-2: var(--brand-2);
+  --color-brand-soft: var(--brand-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
 }
 
 html {
   scroll-behavior: smooth;
+  background: var(--paper);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* Primary action: a blue to violet gradient pill, used for the one main action in a view. */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  padding: 0.7rem 1.25rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(90deg, var(--brand), var(--brand-2));
+  box-shadow: 0 8px 24px -10px var(--brand);
+  transition: filter 0.15s, transform 0.15s;
+}
+.btn-primary:hover {
+  filter: brightness(1.08);
+}
+.btn-primary:disabled,
+.btn-primary[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  padding: 0.7rem 1.25rem;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--card-2);
+  border: 1px solid var(--rule);
+  transition: border-color 0.15s;
+}
+.btn-secondary:hover {
+  border-color: color-mix(in oklab, var(--ink) 30%, var(--rule));
+}
+
+/* Panels share one look: rounded, bordered, slightly raised. */
+.panel {
+  border-radius: 1.25rem;
+  border: 1px solid var(--rule);
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+.icon-tile {
+  display: grid;
+  place-items: center;
+  border-radius: 0.9rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  box-shadow: 0 10px 24px -12px var(--brand);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -27,7 +147,7 @@ html {
 }
 
 :focus-visible {
-  outline: 3px solid var(--color-brand);
+  outline: 3px solid var(--brand);
   outline-offset: 2px;
   border-radius: 6px;
 }

@@ -22,15 +22,17 @@ export async function signInWith(form: FormData) {
   await signIn(provider, { redirectTo });
 }
 
+/** Clears the session cookie. The client then does a full page load, so no stale signed-in UI survives. */
 export async function signOutAction() {
-  await signOut({ redirectTo: "/" });
+  await signOut({ redirect: false });
 }
 
 /** Deletes the signed-in learner's account and all their data, then signs them out. */
-export async function deleteAccountAction(form: FormData) {
-  if (form.get("confirm") !== "DELETE") return;
+export async function deleteAccountAction(form: FormData): Promise<boolean> {
+  if (form.get("confirm") !== "DELETE") return false;
   const user = await requireUser();
   await deleteUser(user.id);
   logger.info("account deleted", { userId: user.id });
-  await signOut({ redirectTo: "/?deleted=1" });
+  await signOut({ redirect: false });
+  return true;
 }

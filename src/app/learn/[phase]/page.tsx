@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Icon } from "@/components/icons";
+import { Badge, HeaderCard, PageBar } from "@/components/page-parts";
 import { colorFor } from "@/config/theme";
-import { getPhase, lessonId, phases, projectFor } from "@/content";
-import { StopDot } from "@/features/progress/components/lesson-status";
+import { getPhase, getQuiz, lessonId, phases, projectFor } from "@/content";
+import { videoFor } from "@/content/videos";
+import { LessonRowStatus } from "@/features/progress/components/lesson-status";
 import { PhaseProgress } from "@/features/progress/components/phase-progress";
 
 // Every URL is prerendered by generateStaticParams, so pages are served from the CDN.
@@ -17,7 +20,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps<"/learn/[phase]">): Promise<Metadata> {
   const phase = getPhase((await params).phase);
   if (!phase) return {};
-  return { title: `${phase.number}. ${phase.title}`, description: `Weeks ${phase.weeks[0]} to ${phase.weeks[1]}. ${phase.outcome}`, alternates: { canonical: `/learn/${phase.slug}` } };
+  return { title: `Module ${phase.number}: ${phase.title}`, description: `Weeks ${phase.weeks[0]} to ${phase.weeks[1]}. ${phase.outcome}`, alternates: { canonical: `/learn/${phase.slug}` } };
 }
 
 export default async function PhasePage({ params }: PageProps<"/learn/[phase]">) {
@@ -27,55 +30,60 @@ export default async function PhasePage({ params }: PageProps<"/learn/[phase]">)
   const project = projectFor(phase);
   const ids = phase.lessons.map((l) => lessonId({ phase, slug: l.slug }));
   const next = phases[phase.number];
+  const videoCount = phase.lessons.filter((l) => videoFor(lessonId({ phase, slug: l.slug }))).length;
 
   return (
-    <div>
-      <header className="border-b border-rule" style={{ background: c.soft }}>
-        <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
-          <nav aria-label="Breadcrumb" className="text-[15px] text-ink/70">
-            <Link href="/learn" className="hover:underline">My progress</Link> <span aria-hidden>/</span> Line {phase.number}
-          </nav>
-          <p className="mt-6" style={{ color: c.ink }}>Line {phase.number} of {phases.length}, weeks {phase.weeks[0]} to {phase.weeks[1]}</p>
-          <h1 className="mt-1 font-display text-5xl font-extrabold tracking-tight">{phase.title}</h1>
-          <p className="mt-4 max-w-2xl text-lg text-ink/80">{phase.outcome}</p>
-          <div className="mt-8 max-w-md"><PhaseProgress title={phase.title} lessonIds={ids} color={c.line} /></div>
-        </div>
-      </header>
+    <div className="mx-auto max-w-6xl">
+      <PageBar trail={[{ href: "/learn", label: "My course" }, { label: `Module ${phase.number}` }]} badge={<Badge>Weeks {phase.weeks[0]} to {phase.weeks[1]}</Badge>} />
 
-      <div className="mx-auto max-w-4xl px-4 py-14 sm:px-6">
-        <h2 className="sr-only">Weekly stops</h2>
-        <ol className="relative">
-          <span aria-hidden className="absolute bottom-6 left-[20px] top-6 w-[7px] -translate-x-1/2 rounded-full" style={{ background: c.line }} />
-          {phase.lessons.map((l) => (
-            <li key={l.slug} className="relative pb-8 last:pb-0">
-              <Link href={`/learn/${phase.slug}/${l.slug}`} className="group flex gap-5">
-                <StopDot id={lessonId({ phase, slug: l.slug })} week={l.week} color={c.line} />
-                <span className="flex-1 rounded-2xl border border-transparent px-4 py-2 transition-colors group-hover:border-rule group-hover:bg-white">
-                  <span className="block font-display text-xl font-bold leading-snug">{l.title}</span>
-                  <span className="mt-1 block text-ink/75">{l.summary}</span>
-                  <span className="mt-1 block text-[15px] text-muted">Week {l.week}, about {Math.round(l.minutes / 60)} hours</span>
-                </span>
-              </Link>
-            </li>
-          ))}
+      <HeaderCard title={`Module ${phase.number}: ${phase.title}`} subtitle={phase.outcome}>
+        <div className="mt-4 max-w-2xl"><PhaseProgress title={phase.title} lessonIds={ids} color={c.line} /></div>
+        <p className="mt-3 text-[14px] text-muted">
+          {phase.lessons.length} lessons · {phase.lessons.length} quizzes{videoCount ? ` · ${videoCount} video${videoCount === 1 ? "" : "s"}` : ""} · 1 project
+        </p>
+      </HeaderCard>
+
+      <section className="panel mt-6 p-5 sm:p-7" aria-labelledby="lessons">
+        <h2 id="lessons" className="text-[15px] font-semibold text-muted">Lessons</h2>
+        <ol className="mt-3 space-y-3">
+          {phase.lessons.map((l) => {
+            const id = lessonId({ phase, slug: l.slug });
+            const hasVideo = Boolean(videoFor(id));
+            return (
+              <li key={l.slug}>
+                <Link href={`/learn/${phase.slug}/${l.slug}`} className="group flex items-center gap-4 rounded-2xl border border-rule bg-card-2 px-4 py-3.5 hover:border-brand/50 sm:px-5">
+                  <LessonRowStatus id={id} week={l.week} color={c.line} />
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-semibold">Week {l.week}: {l.title}</span>
+                    <span className="block text-[14px] text-muted">
+                      About {Math.round(l.minutes / 60)} hours · {getQuiz(id)?.length ?? 0}-question quiz{hasVideo ? " · video" : ""}
+                    </span>
+                  </span>
+                  <span className="btn-primary hidden !px-4 !py-2 text-[15px] sm:inline-flex">Open lesson <Icon name="arrow" size={16} /></span>
+                  <Icon name="chevronRight" className="text-muted sm:hidden" />
+                </Link>
+              </li>
+            );
+          })}
         </ol>
+      </section>
 
-        {project && (
-          <section className="mt-14 grid gap-6 rounded-[24px] border border-rule bg-white p-7 sm:grid-cols-[1fr_auto] sm:items-center">
-            <div>
-              <p style={{ color: c.ink }}>End of the line project</p>
-              <h2 className="mt-1 font-display text-2xl font-bold">{project.title}</h2>
-              <p className="mt-2 text-ink/80">{project.brief}</p>
-            </div>
-            <Link href={`/projects/${project.slug}`} className="rounded-full bg-ink px-6 py-3 text-center font-semibold text-white hover:bg-[#22325a]">Open the brief</Link>
-          </section>
-        )}
-
-        <section className="mt-6 rounded-[24px] p-7" style={{ background: c.soft }}>
-          <h2 className="font-display text-xl font-bold">Gate to {next ? `line ${next.number}, ${next.title}` : "the finish"}</h2>
-          <p className="mt-1 text-ink/80">{phase.gate}</p>
+      {project && (
+        <section className="panel mt-6 grid gap-5 p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:p-7">
+          <span className="icon-tile h-12 w-12"><Icon name="kanban" size={22} /></span>
+          <div>
+            <p className="text-[14px] font-semibold" style={{ color: c.ink }}>Module project, graded by a reviewer</p>
+            <h2 className="mt-0.5 text-xl font-bold">{project.title}</h2>
+            <p className="mt-1 text-muted">{project.brief}</p>
+          </div>
+          <Link href={`/projects/${project.slug}`} className="btn-primary">Open the brief <Icon name="arrow" size={16} /></Link>
         </section>
-      </div>
+      )}
+
+      <section className="mt-6 rounded-[20px] border border-rule p-5 sm:p-7" style={{ background: c.soft }}>
+        <h2 className="font-bold">Gate to {next ? `module ${next.number}, ${next.title}` : "the finish"}</h2>
+        <p className="mt-1 text-ink/80">{phase.gate}</p>
+      </section>
     </div>
   );
 }

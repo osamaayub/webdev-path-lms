@@ -39,7 +39,7 @@ export default function SecurityPage() {
 
       <section className="mt-12">
         <h2 className="font-display text-2xl font-bold">What we store</h2>
-        <dl className="mt-4 divide-y divide-rule rounded-[24px] border border-rule bg-white">
+        <dl className="mt-4 divide-y divide-rule rounded-[20px] border border-rule bg-card">
           {stored.map(([t, d]) => (
             <div key={t} className="grid gap-1 p-5 sm:grid-cols-[180px_1fr] sm:gap-6">
               <dt className="font-semibold">{t}</dt>
@@ -54,7 +54,7 @@ export default function SecurityPage() {
         <h2 className="font-display text-2xl font-bold">How it&apos;s protected</h2>
         <ul className="mt-4 space-y-4">
           {protections.map(([t, d]) => (
-            <li key={t} className="rounded-2xl border-l-4 border-[#3A57E8] bg-white px-5 py-4">
+            <li key={t} className="rounded-2xl border-l-4 border-brand bg-card px-5 py-4">
               <p className="font-semibold">{t}</p>
               <p className="mt-1 text-ink/80">{d}</p>
             </li>
@@ -62,14 +62,14 @@ export default function SecurityPage() {
         </ul>
       </section>
 
-      <section className="mt-12 rounded-[24px] bg-[#E8ECFD] p-7">
+      <section className="mt-12 rounded-[20px] bg-brand-soft p-7">
         <h2 className="font-display text-2xl font-bold">Your choices</h2>
         <p className="mt-2 text-ink/80">
           You can delete your account at any time. It removes your profile, progress, quiz attempts and submissions straight away. Found a security problem? Please report it privately through{" "}
           <a href={`${site.repo}/security/advisories/new`} className="font-semibold underline underline-offset-4">a GitHub security advisory</a>, not a public issue.
         </p>
         <div className="flex flex-wrap items-start gap-3">
-          <Link href="/learn" className="mt-5 inline-flex rounded-full bg-ink px-6 py-3 font-semibold text-white hover:bg-[#22325a]">Back to my progress</Link>
+          <Link href="/learn" className="mt-5 inline-flex btn-primary">Back to my progress</Link>
           <DeleteAccount />
         </div>
       </section>

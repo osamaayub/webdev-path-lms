@@ -4,11 +4,11 @@ import { statusLabel } from "@/features/progress/model";
 import { useProgress } from "@/features/progress/store";
 
 const tones = {
-  approved: "bg-[#E2F5EB] text-[#0A6B3C]",
-  submitted: "bg-[#FEF6DC] text-[#7A5600]",
-  changes_requested: "bg-[#FDEDE8] text-[#9A2E10]",
-  progress: "bg-[#E8ECFD] text-[#1F34A3]",
-  none: "bg-paper text-muted",
+  approved: "bg-ok-soft text-ok",
+  submitted: "bg-warn-soft text-warn",
+  changes_requested: "bg-bad-soft text-bad",
+  progress: "bg-brand-soft text-brand",
+  none: "bg-card-2 text-muted",
 };
 
 export function ProjectStatus({ project, total }: { project: string; total: number }) {

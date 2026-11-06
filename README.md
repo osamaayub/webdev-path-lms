@@ -39,7 +39,12 @@ Most beginners don't fail from lack of material. They fail because there's too m
 - **24 weekly modules:** objectives, then three steps (learn, practice, build) and hand-picked free resources.
 - **120 quiz questions:** a 5-question quiz closes every week. Score 4 of 5 to complete it. Wrong answers come back with an explanation; best score and attempts are kept.
 - **6 graded assignments:** tick the requirements, submit your GitHub repo and live link, and get a grade out of 100 with written feedback. Resubmit after "changes requested".
-- **My progress:** next stop, overall and per-line progress.
+- **Learning portal layout:** a top bar, a sidebar with Learn, Build & Showcase and Account groups, a breadcrumb strip on every page, and module rows with progress and a "View module" button.
+- **Lesson player:** video on the left with Back and Next lesson, a "Course modules" panel on the right with a check next to every passed week.
+- **Video lessons** from the [@osamaayubdev](https://www.youtube.com/@osamaayubdev) channel, loaded from youtube-nocookie only when you press play.
+- **Quizzes page** with your best score per week, **My submissions** with grades and feedback, and a printable **certificate** once all 24 weeks and all 6 projects are done.
+- **Dark and light theme**, dark by default, with no flash on load.
+- **My course:** resume button, overall and per-module progress.
 - **Privacy page and self-service account deletion** (removes every record).
 
 **For reviewers (admins)**
@@ -52,20 +57,20 @@ Most beginners don't fail from lack of material. They fail because there's too m
 - **Auth.js v5** (GitHub, Google) with the Drizzle adapter and signed JWT session cookies.
 - **Server Actions** for every write: authenticate, validate with Zod against the course content, rate-limit, then touch only the caller's rows.
 - **Security:** strict CSP, HSTS, no framing, server-graded quizzes, allowlisted admins, open-redirect-safe sign-in, structured logs without secrets. See [SECURITY.md](SECURITY.md).
-- **Tests:** 29 Vitest tests, including server actions against a real Postgres (PGlite) with migrations, plus a Playwright end-to-end run of the full learner and reviewer flow.
+- **Tests:** 30 Vitest tests, including server actions against a real Postgres (PGlite) with migrations, plus a Playwright end-to-end run of the full learner and reviewer flow.
 - **SEO and accessibility:** metadata, sitemap, Open Graph image, real 404s, landmarks, labelled forms, keyboard support, reduced motion.
 
 ## Screenshots
 
-| My progress | A weekly lesson |
+| My course | A weekly lesson |
 | --- | --- |
-| <img src="docs/screenshots/progress.jpg" alt="Progress dashboard with next stop, per-line bars and the route map" width="440"> | <img src="docs/screenshots/lesson.jpg" alt="Lesson page with the line's stops in a sidebar, objectives and learn steps" width="440"> |
+| <img src="docs/screenshots/progress.jpg" alt="My course page with sidebar, welcome card, roadmap video banner and module rows" width="440"> | <img src="docs/screenshots/lesson.jpg" alt="Lesson page with the video player on the left and the course modules panel on the right" width="440"> |
 
-| A line (phase) | A project brief |
+| A module | A project brief |
 | --- | --- |
-| <img src="docs/screenshots/phase.jpg" alt="Foundations line with four weekly stops on a vertical orange line" width="440"> | <img src="docs/screenshots/project.jpg" alt="Project page with user stories, requirement checklist and submission form" width="440"> |
+| <img src="docs/screenshots/phase.jpg" alt="Module page with progress and a list of weekly lessons" width="440"> | <img src="docs/screenshots/project.jpg" alt="Project page with requirement checklist and submission form" width="440"> |
 
-<p align="center"><img src="docs/screenshots/mobile.jpg" alt="Home page on a phone" width="260"></p>
+<p align="center"><img src="docs/screenshots/mobile.jpg" alt="Module page on a phone" width="260"></p>
 
 ## Quick start
 
@@ -163,11 +168,11 @@ Design decisions, the request flow and the plan for accounts: **[docs/ARCHITECTU
 
 | Token | Value | Used for |
 | --- | --- | --- |
-| Ink | `#14213D` | Text, primary buttons, stop outlines |
-| Paper | `#F6F7FB` | Page background |
-| Line colours | `#E4572E` `#E9A800` `#139A98` `#3A57E8` `#7B2CBF` `#0F9D58` | One per phase, so you always know which line you're on |
-| Display type | Bricolage Grotesque | Headings |
-| Body type | Atkinson Hyperlegible | Body text, designed for readability |
+| Theme | CSS variables in `globals.css` (`--paper`, `--card`, `--ink`, `--muted`, `--brand`, `--brand-2`) | Dark navy by default, light theme via `data-theme="light"` |
+| Brand gradient | `--brand` to `--brand-2` (blue to violet) | Primary buttons, icon tiles, progress bars |
+| Status | `--ok`, `--warn`, `--bad` | Approved, in review, changes requested |
+| Line colours | `#E4572E` `#E9A800` `#139A98` `#3A57E8` `#7B2CBF` `#0F9D58` | One per module, so you always know where you are |
+| Type | Geist (self-hosted variable font) | Headings and body |
 
 ## Editing the course
 
@@ -191,9 +196,9 @@ All content lives in `src/content`:
 - [x] Weekly quizzes graded on the server
 - [x] Graded project reviews with feedback
 - [ ] Email when a project is reviewed
-- [ ] Video lessons embedded from [YouTube](https://www.youtube.com/@osamaayubdev)
-- [ ] Certificate when all six projects are approved
-- [ ] Dark mode
+- [x] Video lessons embedded from [YouTube](https://www.youtube.com/@osamaayubdev)
+- [x] Certificate when all 24 weeks are passed and all six projects are approved
+- [x] Dark and light theme
 
 ## Contributing
 
