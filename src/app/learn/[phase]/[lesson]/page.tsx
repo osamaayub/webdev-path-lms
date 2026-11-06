@@ -57,20 +57,21 @@ export default async function LessonPage({ params }: PageProps<"/learn/[phase]/[
       <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0 space-y-6">
           <section className="panel overflow-hidden">
-            <div className="flex flex-wrap items-center gap-3 border-b border-rule px-4 py-3 sm:px-5">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-rule px-4 py-3 sm:px-5">
               <Link href={prev ? href(prev) : `/learn/${l.phase.slug}`} className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-muted hover:bg-card-2 hover:text-ink">
                 <Icon name="back" size={16} /> Back
               </Link>
-              <p className="min-w-0 flex-1 truncate font-semibold">{l.title}</p>
+              {/* On phones the title gets its own line instead of being cut off. */}
+              <h1 className="order-last basis-full font-semibold leading-snug sm:order-none sm:min-w-0 sm:flex-1 sm:basis-0 sm:truncate">Week {l.week}: {l.title}</h1>
               {next && (
-                <Link href={href(next)} className="btn-secondary !px-3 !py-2 text-[15px]">
-                  Next lesson <Icon name="chevronRight" size={16} />
+                <Link href={href(next)} className="btn-secondary ml-auto !px-3 !py-2 text-[15px] sm:ml-0">
+                  {video ? "Next video" : "Next lesson"} <Icon name="chevronRight" size={16} />
                 </Link>
               )}
             </div>
             <div className="p-4 sm:p-5">
               {video ? (
-                <VideoPlayer id={video.id} title={video.title} />
+                <VideoPlayer id={video.id} title={video.title} provider={video.provider} />
               ) : (
                 <div className="grid aspect-[21/9] place-items-center rounded-2xl border border-rule p-6 text-center" style={{ background: `linear-gradient(135deg, ${c.soft}, var(--card-2))` }}>
                   <div>
