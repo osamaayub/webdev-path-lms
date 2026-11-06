@@ -71,7 +71,12 @@ export default async function LessonPage({ params }: PageProps<"/learn/[phase]/[
             </div>
             <div className="p-4 sm:p-5">
               {video ? (
-                <VideoPlayer id={video.id} title={video.title} provider={video.provider} />
+                <VideoPlayer
+                    id={video.id}
+                    title={video.title}
+                    provider={video.provider}
+                    credit={video.creator ? <>Free lesson by <a href={`https://www.youtube.com/watch?v=${video.id}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-ink hover:underline">{video.creator}</a> on YouTube</> : "WebDev Path video lesson"}
+                  />
               ) : (
                 <div className="grid aspect-[21/9] place-items-center rounded-2xl border border-rule p-6 text-center" style={{ background: `linear-gradient(135deg, ${c.soft}, var(--card-2))` }}>
                   <div>
