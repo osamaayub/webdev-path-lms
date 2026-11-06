@@ -11,6 +11,8 @@ export const users = pgTable("user", {
   email: text("email").unique(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
+  // Set only for email + password accounts (scrypt, see src/server/password.ts). Null for GitHub/Google users.
+  passwordHash: text("password_hash"),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 });
 
@@ -114,4 +116,18 @@ export const submissions = pgTable(
     updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("submission_user_project_idx").on(t.userId, t.projectSlug), index("submission_status_idx").on(t.status, t.updatedAt)],
+);
+
+// ---------------------------------------------------------------------------
+// Sign-in and sign-up attempts, for rate limiting (works across serverless instances)
+// ---------------------------------------------------------------------------
+
+export const authAttempts = pgTable(
+  "auth_attempt",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    key: text("key").notNull(), // e.g. "signin:ana@example.com" or "signup:203.0.113.4"
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+  },
+  (t) => [index("auth_attempt_key_idx").on(t.key, t.createdAt)],
 );
