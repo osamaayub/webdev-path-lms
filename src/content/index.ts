@@ -1,10 +1,11 @@
 import { phases } from "./phases";
+import { practiceBuilds, practiceFor } from "./practice";
 import { projects } from "./projects";
 import { PASS_MARK, quizzes } from "./quizzes";
 import type { Lesson, Phase, Project, PublicQuizQuestion } from "./types";
 
-export type { Lesson, Phase, Project, Resource, Level, QuizQuestion, PublicQuizQuestion } from "./types";
-export { phases, projects, quizzes, PASS_MARK };
+export type { Lesson, Phase, Project, Resource, Level, QuizQuestion, PublicQuizQuestion, Milestone, PracticeBuild } from "./types";
+export { phases, projects, quizzes, PASS_MARK, practiceBuilds, practiceFor };
 
 export const course = {
   title: "Full-Stack Web Development",
