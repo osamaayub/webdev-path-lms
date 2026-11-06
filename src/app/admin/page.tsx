@@ -49,7 +49,7 @@ async function AdminContent({ searchParams }: Pick<PageProps<"/admin">, "searchP
           ["Weeks completed", stats.lessonsCompleted],
           ["Quiz attempts", stats.quizAttempts],
         ].map(([label, n]) => (
-          <div key={label} className="rounded-2xl border border-rule bg-white p-4">
+          <div key={label} className="rounded-2xl border border-rule bg-card p-4">
             <dt className="text-[14px] text-muted">{label}</dt>
             <dd className="mt-1 font-display text-3xl font-bold">{n}</dd>
           </div>
@@ -58,21 +58,21 @@ async function AdminContent({ searchParams }: Pick<PageProps<"/admin">, "searchP
 
       <nav aria-label="Filter by status" className="mt-10 flex flex-wrap gap-2">
         {tabs.map((t) => (
-          <Link key={t.key} href={`/admin?status=${t.key}`} aria-current={t.key === active ? "page" : undefined} className={`rounded-full px-4 py-2 font-semibold ${t.key === active ? "bg-ink text-white" : "bg-white text-ink hover:bg-rule"}`}>
+          <Link key={t.key} href={`/admin?status=${t.key}`} aria-current={t.key === active ? "page" : undefined} className={`rounded-full px-4 py-2 font-semibold ${t.key === active ? "btn-primary !rounded-full !py-2" : "bg-card text-ink hover:bg-card-2 border border-rule"}`}>
             {t.label}
           </Link>
         ))}
       </nav>
 
       {rows.length === 0 ? (
-        <p className="mt-8 rounded-[24px] bg-white p-8 text-center text-muted">Nothing here. {active === "submitted" ? "New submissions will show up here, oldest first." : ""}</p>
+        <p className="mt-8 rounded-[20px] bg-card p-8 text-center text-muted">Nothing here. {active === "submitted" ? "New submissions will show up here, oldest first." : ""}</p>
       ) : (
         <ul className="mt-6 space-y-5">
           {rows.map((r) => {
             const project = getProject(r.projectSlug);
             const c = colorFor(project?.phaseSlug ?? "");
             return (
-              <li key={r.id} className="overflow-hidden rounded-[24px] border border-rule bg-white">
+              <li key={r.id} className="overflow-hidden rounded-[20px] border border-rule bg-card">
                 <div className="h-1.5" style={{ background: c.line }} />
                 <div className="p-6">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -80,14 +80,14 @@ async function AdminContent({ searchParams }: Pick<PageProps<"/admin">, "searchP
                       <p className="font-display text-xl font-bold">{project ? `Project ${project.number}: ${project.title}` : r.projectSlug}</p>
                       <p className="text-ink/75">{r.learnerName ?? "Learner"} <span className="text-muted">({r.learnerEmail ?? "no email"})</span></p>
                     </div>
-                    <span className="rounded-full bg-paper px-3 py-1 text-[14px] font-semibold">{statusLabel[r.status]}{r.grade !== null ? `, ${r.grade}/100` : ""}</span>
+                    <span className="rounded-full bg-card-2 px-3 py-1 text-[14px] font-semibold">{statusLabel[r.status]}{r.grade !== null ? `, ${r.grade}/100` : ""}</span>
                   </div>
                   <p className="mt-2 text-[15px] text-muted">Version {r.attempts}, updated {r.updatedAt.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" })} UTC</p>
                   <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1">
                     <li><a href={r.repoUrl} target="_blank" rel="noopener noreferrer nofollow" className="font-semibold underline underline-offset-4">Repository</a></li>
                     <li><a href={r.liveUrl} target="_blank" rel="noopener noreferrer nofollow" className="font-semibold underline underline-offset-4">Live site</a></li>
                   </ul>
-                  {r.notes && <p className="mt-3 whitespace-pre-line rounded-xl bg-paper p-3 text-[15px]"><span className="font-semibold">Learner notes: </span>{r.notes}</p>}
+                  {r.notes && <p className="mt-3 whitespace-pre-line rounded-xl bg-card-2 p-3 text-[15px]"><span className="font-semibold">Learner notes: </span>{r.notes}</p>}
                   <ReviewForm id={r.id} grade={r.grade} feedback={r.feedback} />
                 </div>
               </li>
