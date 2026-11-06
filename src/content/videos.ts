@@ -1,7 +1,9 @@
-// Free video lessons from the WebDev Path YouTube channel, matched to the week they teach.
-// Only weeks with a real, published video are listed. Nothing is invented.
+// Video lessons, matched to the week they teach. Only real, published videos are listed.
+// provider "youtube" (default): a YouTube video id, played through youtube-nocookie.
+// provider "bunny": a Bunny Stream video, id written as "<libraryId>/<videoId>" (the same
+// private video hosting Talha's School uses). Upload a recording there and add a line here.
 
-export type VideoLesson = { id: string; title: string; minutes: number; lessonId?: string };
+export type VideoLesson = { id: string; title: string; minutes: number; lessonId?: string; provider?: "youtube" | "bunny" };
 
 export const introVideo: VideoLesson = { id: "YNbeOEkOZ6Y", title: "Full-Stack Developer Roadmap 2026: What to Learn, Step by Step", minutes: 4 };
 
