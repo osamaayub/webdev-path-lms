@@ -1,10 +1,11 @@
 import "server-only";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { eq } from "drizzle-orm";
-import NextAuth, { type NextAuthConfig } from "next-auth";
+import NextAuth, { CredentialsSignin, type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
+import { checkPassword, clearAttempts, recordAttempt, tooManyAttempts } from "./accounts";
 import { getDb, hasDatabase } from "./db";
 import { accounts, sessions, users, verificationTokens } from "./db/schema";
 
@@ -13,6 +14,8 @@ export function enabledProviders() {
   return {
     github: Boolean(process.env.AUTH_GITHUB_ID && process.env.AUTH_GITHUB_SECRET),
     google: Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET),
+    // Email + password needs only the database.
+    password: hasDatabase(),
     // Local-only test login. Never available in a production build.
     dev: process.env.NODE_ENV !== "production" && process.env.AUTH_DEV_LOGIN === "1",
   };
@@ -21,15 +24,10 @@ export function enabledProviders() {
 /** Sign-in works only when there is a database, a secret and at least one provider. */
 export function authConfigured() {
   const p = enabledProviders();
-  return hasDatabase() && Boolean(process.env.AUTH_SECRET) && (p.github || p.google || p.dev);
+  return hasDatabase() && Boolean(process.env.AUTH_SECRET) && (p.github || p.google || p.password || p.dev);
 }
 
-/** Admins are listed by email in ADMIN_EMAILS (comma-separated). No role column to tamper with. */
-export function isAdminEmail(email: string | null | undefined) {
-  if (!email) return false;
-  const admins = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
-  return admins.includes(email.toLowerCase());
-}
+export { isAdminEmail } from "./auth-rules";
 
 async function config(): Promise<NextAuthConfig> {
   const p = enabledProviders();
@@ -38,6 +36,29 @@ async function config(): Promise<NextAuthConfig> {
   const providers: NextAuthConfig["providers"] = [];
   if (p.github) providers.push(GitHub);
   if (p.google) providers.push(Google);
+  if (p.password && db) {
+    providers.push(
+      Credentials({
+        id: "password",
+        name: "Email and password",
+        credentials: { email: { label: "Email", type: "email" }, password: { label: "Password", type: "password" } },
+        async authorize(input) {
+          const email = String(input?.email ?? "").trim().toLowerCase().slice(0, 254);
+          const password = String(input?.password ?? "").slice(0, 200);
+          if (!email || !password) return null;
+          const key = `signin:${email}`;
+          if (await tooManyAttempts(key, "signin")) throw new TooManyAttempts();
+          const user = await checkPassword(email, password);
+          if (!user) {
+            await recordAttempt(key);
+            return null;
+          }
+          await clearAttempts(key);
+          return user;
+        },
+      }),
+    );
+  }
   if (p.dev && db) {
     providers.push(
       Credentials({
@@ -64,16 +85,25 @@ async function config(): Promise<NextAuthConfig> {
     pages: { signIn: "/sign-in", error: "/sign-in" },
     trustHost: true,
     callbacks: {
-      jwt({ token, user }) {
+      jwt({ token, user, account }) {
         if (user?.id) token.sub = user.id;
+        // Remember how this session signed in. Password accounts have unverified emails,
+        // so they can never be admins, even if the email matches ADMIN_EMAILS.
+        if (account) token.method = account.provider;
         return token;
       },
       session({ session, token }) {
         if (token.sub) session.user.id = token.sub;
+        (session.user as { method?: string }).method = typeof token.method === "string" ? token.method : undefined;
         return session;
       },
     },
   };
+}
+
+/** Thrown when an email has too many failed sign-ins; shown as its own message on the form. */
+export class TooManyAttempts extends CredentialsSignin {
+  code = "too_many_attempts";
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth(config);

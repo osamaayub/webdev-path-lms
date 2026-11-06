@@ -12,7 +12,11 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
   const session = await auth();
   const u = session?.user;
   if (!u?.id) return null;
-  return { id: u.id, name: u.name ?? null, email: u.email ?? null, image: u.image ?? null, isAdmin: isAdminEmail(u.email) };
+  // Admin needs an allow-listed email AND a verified sign-in: never an email + password session,
+  // whose email nobody has confirmed. (Sessions from before passwords existed carry no method.)
+  const method = (u as { method?: string }).method;
+  const verified = method !== "password";
+  return { id: u.id, name: u.name ?? null, email: u.email ?? null, image: u.image ?? null, isAdmin: verified && isAdminEmail(u.email) };
 });
 
 export class AuthError extends Error {
