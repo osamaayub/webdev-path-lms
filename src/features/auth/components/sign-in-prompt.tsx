@@ -20,9 +20,14 @@ export function SignInPrompt({ title, body, tone = "var(--brand-soft)" }: { titl
       <p className="font-display text-xl font-bold">{state.configured ? title : "Accounts are being set up"}</p>
       <p className="mt-1 text-ink/80">{state.configured ? body : "You can read every lesson now. Progress, quizzes and project reviews open as soon as sign-in is live."}</p>
       {state.configured && (
-        <Link href={`/sign-in?returnTo=${encodeURIComponent(path)}`} className="mt-5 inline-flex btn-primary">
-          Sign in to continue
-        </Link>
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <Link href={`/sign-up?returnTo=${encodeURIComponent(path)}`} className="btn-primary inline-flex">
+            Create a free account
+          </Link>
+          <Link href={`/sign-in?returnTo=${encodeURIComponent(path)}`} className="btn-secondary inline-flex">
+            Sign in
+          </Link>
+        </div>
       )}
     </div>
   );

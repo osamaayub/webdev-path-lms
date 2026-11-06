@@ -27,9 +27,14 @@ export function AccountMenu() {
   if (!state.viewer) {
     if (!state.configured) return null;
     return (
-      <Link href="/sign-in" className="btn-primary ml-1 whitespace-nowrap !py-2">
-        Sign in
-      </Link>
+      <span className="ml-1 flex items-center gap-1.5">
+        <Link href="/sign-in" className="whitespace-nowrap rounded-xl px-3 py-2 font-semibold text-ink/85 hover:bg-card-2">
+          Sign in
+        </Link>
+        <Link href="/sign-up" className="btn-primary hidden whitespace-nowrap !py-2 sm:inline-flex">
+          Sign up free
+        </Link>
+      </span>
     );
   }
 
