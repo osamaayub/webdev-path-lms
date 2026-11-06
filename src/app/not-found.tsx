@@ -6,7 +6,7 @@ export default function NotFound() {
       <p className="text-muted">Error 404</p>
       <h1 className="mt-2 font-display text-4xl font-extrabold tracking-tight">There&apos;s no stop here.</h1>
       <p className="mt-3 text-ink/80">This lesson or project doesn&apos;t exist. It may have been renamed.</p>
-      <Link href="/learn" className="mt-8 inline-flex rounded-full bg-ink px-6 py-3 font-semibold text-white">Go to my progress</Link>
+      <Link href="/learn" className="mt-8 btn-primary">Go to my progress</Link>
     </div>
   );
 }

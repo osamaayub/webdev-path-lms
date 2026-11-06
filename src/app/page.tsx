@@ -6,18 +6,6 @@ import { allLessons, course, phases, projectFor, projects } from "@/content";
 import { RouteMap } from "@/features/route/route-map";
 import { routeLines } from "@/features/route/to-lines";
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "Course",
-  name: `${course.title}: zero to job-ready in 24 weeks`,
-  description: site.description,
-  url: site.url,
-  provider: { "@type": "Person", name: site.author.name, url: site.author.url },
-  isAccessibleForFree: true,
-  educationalLevel: "Beginner",
-  hasCourseInstance: { "@type": "CourseInstance", courseMode: "online", courseWorkload: "PT12H/week" },
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD", category: "Free" },
-};
 
 const week = [
   { name: "Learn", share: "30% of your time", text: "One focused lesson and the best free resources for it." },
@@ -30,8 +18,6 @@ export default function Home() {
   const lines = routeLines();
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-
       <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-14 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:pt-20">
         <div>
           <p className="text-muted">A free course for complete beginners</p>
@@ -47,12 +33,12 @@ export default function Home() {
           </div>
           <p className="mt-6 text-[15px] text-muted">Free forever. Sign in with GitHub or Google to save your progress.</p>
         </div>
-        <div className="rounded-[28px] border border-rule bg-white p-4 shadow-[0_1px_0_#dfe3ec,0_24px_60px_-30px_rgba(20,33,61,0.35)] sm:p-6">
+        <div className="rounded-[20px] border border-rule bg-card p-4 shadow-[var(--shadow)] sm:p-6">
           <RouteMap lines={lines} animate />
         </div>
       </section>
 
-      <section id="route" className="scroll-mt-20 border-y border-rule bg-white">
+      <section id="route" className="scroll-mt-20 border-y border-rule bg-card">
         <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
           <h2 className="font-display text-4xl font-bold tracking-tight">Six lines, one route</h2>
           <p className="mt-3 max-w-2xl text-ink/80">Each line ends with a project and a gate. Pass the gate before you change lines: every line builds on the one before it.</p>
@@ -99,12 +85,12 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="flex flex-col items-start justify-between gap-6 rounded-[28px] bg-ink px-8 py-12 text-white sm:flex-row sm:items-center sm:px-12">
+        <div className="flex flex-col items-start justify-between gap-6 rounded-[20px] px-8 py-12 text-white sm:flex-row sm:items-center sm:px-12" style={{ background: "linear-gradient(110deg, var(--brand), var(--brand-2))" }}>
           <div>
             <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Week 1 takes about 10 hours.</h2>
             <p className="mt-2 text-white/75">You&apos;ll set up your tools and put your first page on GitHub.</p>
           </div>
-          <Link href="/learn/foundations/how-the-web-works" className="rounded-full bg-white px-6 py-3 font-semibold text-ink hover:bg-paper">
+          <Link href="/learn/foundations/how-the-web-works" className="rounded-xl bg-white px-6 py-3 font-semibold text-[#1b2140] hover:bg-white/90">
             Start week 1
           </Link>
         </div>
