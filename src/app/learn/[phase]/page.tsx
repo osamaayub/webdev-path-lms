@@ -59,7 +59,7 @@ export default async function PhasePage({ params }: PageProps<"/learn/[phase]">)
                       About {Math.round(l.minutes / 60)} hours · {getQuiz(id)?.length ?? 0}-question quiz{hasVideo ? " · video" : ""}
                     </span>
                   </span>
-                  <span className="btn-primary hidden !px-4 !py-2 text-[15px] sm:inline-flex">Open lesson <Icon name="arrow" size={16} /></span>
+                  <span className="btn-primary hidden !px-4 !py-2 text-[15px] sm:inline-flex">{hasVideo ? "Watch video" : "Open lesson"} <Icon name="arrow" size={16} /></span>
                   <Icon name="chevronRight" className="text-muted sm:hidden" />
                 </Link>
               </li>
