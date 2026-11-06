@@ -23,6 +23,7 @@ const paths = {
   check: "M5 12l5 5L20 7",
   lock: "M5 11h14v10H5Z M8 11V7a4 4 0 0 1 8 0v4",
   external: "M14 4h6v6 M20 4l-9 9 M19 14v6H4V5h6",
+  expand: "M4 9V4h5 M20 9V4h-5 M4 15v5h5 M20 15v5h-5",
 } as const;
 
 export type IconName = keyof typeof paths;

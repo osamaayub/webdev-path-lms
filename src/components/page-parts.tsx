@@ -6,23 +6,23 @@ export function PageBar({ trail, badge }: { trail: { href?: string; label: strin
   return (
     <div className="panel flex flex-wrap items-center gap-2 px-4 py-3">
       <nav aria-label="Breadcrumb">
-        <ol className="flex flex-wrap items-center gap-1 text-[15px]">
+        <ol className="flex flex-wrap items-center gap-1 text-[14px] sm:text-[15px]">
           {trail.map((t, i) => {
             const last = i === trail.length - 1;
             return (
               <li key={t.label} className="flex items-center gap-1">
                 {i > 0 && <Icon name="chevronRight" size={15} className="text-muted" />}
                 {t.href && !last ? (
-                  <Link href={t.href} className="rounded-lg px-3 py-1.5 text-muted hover:bg-card-2 hover:text-ink">{t.label}</Link>
+                  <Link href={t.href} className="rounded-lg px-2 py-1.5 text-muted hover:bg-card-2 hover:text-ink sm:px-3">{t.label}</Link>
                 ) : (
-                  <span aria-current={last ? "page" : undefined} className="rounded-lg border border-brand/40 bg-brand-soft px-3 py-1.5 font-semibold">{t.label}</span>
+                  <span aria-current={last ? "page" : undefined} className="rounded-lg border border-brand/40 bg-brand-soft px-2.5 py-1.5 font-semibold sm:px-3">{t.label}</span>
                 )}
               </li>
             );
           })}
         </ol>
       </nav>
-      {badge && <div className="ml-auto">{badge}</div>}
+      {badge && <div className="ml-auto hidden sm:block">{badge}</div>}
     </div>
   );
 }
